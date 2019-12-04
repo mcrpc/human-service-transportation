@@ -14,8 +14,8 @@ illinoisCountyData2017File <- paste(
   inputDataDirectory,
   "/illinoisCountyData2017.csv",
   sep = ""
-) %T>%
-illinoisCountyData2017 <- readr::read_csv(., col_types = columnTypeList)
+)
+illinoisCountyData2017 <- readr::read_csv(illinoisCountyData2017File, col_types = columnTypeList)
 
 # retrieve illinois county data from api if csv does not exist
 if (!exists("illinoisCountyData2017")) {
@@ -58,8 +58,8 @@ region6TractData2017File <- paste(
   inputDataDirectory,
   "/region6TractData2017.csv",
   sep = ""
-) %T>%
-region6TractData2017 <- readr::read_csv(., col_types = columnTypeList)
+)
+region6TractData2017 <- readr::read_csv(region6TractData2017File, col_types = columnTypeList)
 
 # retrieve illinois tract data from api if csv does not exist
 if (!exists("region6TractData2017")) {
@@ -103,8 +103,8 @@ region6BlockGroupData2017File <- paste(
   inputDataDirectory, 
   "/region6BlockGroupData2017.csv", 
   sep = ""
-) %T>%
-region6BlockGroupData2017 <- read_csv(., col_types = columnTypeList)
+)
+region6BlockGroupData2017 <- read_csv(region6BlockGroupData2017File, col_types = columnTypeList)
 
 # retrieve region 6 block group data from api if csv does not exist
 if (!exists("region6BlockGroupData2017")) {
