@@ -25,7 +25,7 @@ outputDataDirectory <- here::here("data")
 chartDirectory <- here::here("chart")
 mapDirectory <- here::here("map")
 censusDataInventoryFile <- "2019-10-25_TRILEY_census-data-inventory.csv"
-censusDataInventory <- readr::read_csv(here::here("data", acsInventoryFile))
+censusDataInventory <- readr::read_csv(here::here("data", censusDataInventoryFile))
 censusAPIKey <- "2f44a09c684e6b031d3e76f3655c169c167aeba8"
 Sys.setenv(CENSUS_KEY = censusAPIKey)
 acs2017VariableTable <- tidycensus::load_variables(2017, "acs5", cache = TRUE)         # !!CHANGE THIS WHEN UPDATED DATA IS RELEASED!!

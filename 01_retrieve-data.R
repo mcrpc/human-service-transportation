@@ -1,27 +1,53 @@
 
-# initialize --------------------------------------------------------------
+# initialize local variables ----------------------------------------------
 region6CountyList <- c("113", "053", "105", "075", "091")
 acsYear <- 2017                                              # !!CHANGE THIS WHEN UPDATED DATA IS RELEASED!!
 acsSurvey <- "acs5"
+censusYear <- 2010
 columnTypeList <- readr::cols(GEOID = col_character())
 
-# retrieve data -----------------------------------------------------------
-# create lists of variables to be retrieved
-acsTableInventory <- readr::read_csv("inventory.csv")
-
-# retrieve illinois county data from csv
-illinoisCountyData2017File <- paste(
-  inputDataDirectory,
-  "/illinoisCountyData2017.csv",
-  sep = ""
+# load data from network drive --------------------------------------------
+# illinois county data
+illinoisCountyDataFile <- "illinois-counties_ACS-2013-2017.csv"
+illinoisCountyData <- readr::read_csv(
+  here::here("data", "raw", illinoisCountyDataFile),
+  col_types = columnTypeList
 )
-illinoisCountyData2017 <- readr::read_csv(illinoisCountyData2017File, col_types = columnTypeList)
+# region 6 tract data
+region6TractDataFile <- "region-6-tracts_ACS-2013-2017.csv"
+region6TractData <- readr::read_csv(
+  here::here("data", "raw", region6TractDataFile),
+  col_types = columnTypeList
+)
+# region 6 block group data
+region6BlockGroupDataFile <- "region-6-block-groups_ACS-2013-2017.csv"
+region6BlockGroupData <- readr::read_csv(
+  here::here("data", "raw", region6BlockGroupDataFile),
+  col_types = columnTypeList
+)
+# illinois veteran's health administration medical facility data
+illinoisVHAFacilityLayerFile <- "Veterans_Health_Administration_Medical_Facilities.shp"
+illinoisVHAFacilityLayer <- st_read(
+  here::here("data", "raw", illinoisVHAFacilityLayerFile)
+) %>%
+  select(c(NAME, FIPS, PRIM_SVC)) %>%
+  subset(str_starts(FIPS, '17')) %>%
+  st_transform(3443)
+# illinois USGS point of information data
+illinoisUSGSPOILayerFile <- "Struct_Point.shp"
+illinoisUSGSPOILayer <- st_read(
+  here::here("data", "raw", illinoisUSGSPOILayerFile)
+) %>%
+  select(c(OBJECTID, FCode, Name)) %>%
+  subset(substr(FCode, 0, 3) %in% list) %>%
+  st_transform(3443)
 
-# retrieve illinois county data from api if csv does not exist
-if (!exists("illinoisCountyData2017")) {
-  censusTable2010 <- censusapi::getCensus(
+# retrieve data from API, if data not found on network drive --------------
+# illinois county data
+if (!exists("illinoisCountyData")) {
+  censusTable <- censusapi::getCensus(
     name = "dec/sf1",
-    vintage = 2010,
+    vintage = censusYear,
     vars = c("P002001", "P002003"),
     region = "county:*",
     regionin = "state:17"
@@ -34,8 +60,8 @@ if (!exists("illinoisCountyData2017")) {
     dplyr::select(-c(state, county, P002001, P002003)) %>%
     tibble::as_tibble()
   
-  acsTable2017 <- purrr::map_dfr(
-    dplyr::filter(acsTableInventory, geo_level != "block")[[1]], 
+  acsTable <- purrr::map_dfr(
+    dplyr::filter(censusDataInventory, geo_level != "block")[[1]], 
     ~ tidycensus::get_acs(
       geography = "county",
       table = .,
@@ -48,24 +74,15 @@ if (!exists("illinoisCountyData2017")) {
     dplyr::group_by(GEOID) %>%
     dplyr::summarize_all(coalesceByColumn)
   
-  illinoisCountyData2017 <- dplyr::left_join(censusTable2010, acsTable2017)
-  readr::write_csv(illinoisCountyData2017, illinoisCountyData2017File)
+  illinoisCountyData <- dplyr::left_join(censusTable, acsTable)
+  readr::write_csv(illinoisCountyData, illinoisCountyDataFile)
 }
 
-
-# retrieve region 6 tract data from csv
-region6TractData2017File <- paste(
-  inputDataDirectory,
-  "/region6TractData2017.csv",
-  sep = ""
-)
-region6TractData2017 <- readr::read_csv(region6TractData2017File, col_types = columnTypeList)
-
-# retrieve illinois tract data from api if csv does not exist
-if (!exists("region6TractData2017")) {
-  censusTable2010 <- censusapi::getCensus(
+# region 6 tract data
+if (!exists("region6TractData")) {
+  censusTable <- censusapi::getCensus(
     name = "dec/sf1",
-    vintage = 2010,
+    vintage = censusYear,
     vars = c("P002001", "P002003"),
     region = "tract:*",
     regionin = "state:17"
@@ -78,8 +95,8 @@ if (!exists("region6TractData2017")) {
     dplyr::select(-c(state, county, P002001, P002003)) %>%
     tibble::as_tibble()
   
-  acsTable2017 <- purrr::map_dfr(
-    dplyr::filter(acsTableInventory, geo_level != "block")[[1]], 
+  acsTable <- purrr::map_dfr(
+    dplyr::filter(censusDataInventory, geo_level != "block")[[1]], 
     ~ tidycensus::get_acs(
       geography = "tract",
       table = .,
@@ -93,38 +110,26 @@ if (!exists("region6TractData2017")) {
     dplyr::group_by(GEOID) %>%
     dplyr::summarize_all(coalesceByColumn)
   
-  region6TractData2017 <- dplyr::right_join(censusTable2010, acsTable2017)
-  readr::write_csv(region6TractData2017, region6TractData2017File)
+  region6TractData <- dplyr::right_join(censusTable, acsTable)
+  readr::write_csv(
+    region6TractData,
+    here::here("data", "raw", region6TractDataFile)
+  )
 }
 
 
-# retrieve region 6 block group data from csv
-region6BlockGroupData2017File <- paste(
-  inputDataDirectory, 
-  "/region6BlockGroupData2017.csv", 
-  sep = ""
-)
-region6BlockGroupData2017 <- read_csv(region6BlockGroupData2017File, col_types = columnTypeList)
 
-# retrieve region 6 block group data from api if csv does not exist
-if (!exists("region6BlockGroupData2017")) {
-  censusTable2010 <- censusapi::getCensus(
-    name = "dec/sf1",
-    vintage = 2010,
-    vars = c("P002001", "P002003"),
-    region = "block group:*",
-    regionin = "state:17+county:113+tract:005700"
-  ) %>%
-    dplyr::mutate(
-      GEOID = paste0(state, county, tract, sep = ""),
-      population2010 = P002001,
-      percentUrban2010 = P002003/P002001
-    ) %>%
-    dplyr::select(-c(state, county, P002001, P002003)) %>%
-    tibble::as_tibble()
+# region 6 block group data
+if (!exists("region6BlockGroupData")) {
+  # 2019-12-06 - TRRILEY:
+  # census API does not support requests for decennial census data for block
+  # groups across different tracts and counties, so P002001 and P002003 cannot
+  # be retrieved for region 6 block groups and urban population percentage
+  # cannot be determined at this time
+
   
-  acsTable2017 <- purrr::map_dfr(
-    dplyr::filter(acsTableInventory, geo_level == "block group")[[1]], 
+  acsTable <- purrr::map_dfr(
+    dplyr::filter(censusDataInventory, geo_level == "block group")[[1]], 
     ~ tidycensus::get_acs(
       geography = "block group",
       table = .,
@@ -138,8 +143,11 @@ if (!exists("region6BlockGroupData2017")) {
     dplyr::group_by(GEOID) %>%
     dplyr::summarize_all(coalesceByColumn)
   
-  region6BlockGroupData2017 <- dplyr::right_join(censusTable2010, acsTable2017)
-  readr::write_csv(region6BlockGroupData2017, region6BlockGroupData2017File)
+  region6BlockGroupData <- acsTable
+  readr::write_csv(
+    region6BlockGroupData,
+    here::here("data", "raw", region6BlockGroupDataFile)
+  )
 }
 
 
@@ -161,7 +169,7 @@ acsVariableList <- c(
   #popVetsPovvar <- c("C21007_004E", "C21007_019E"),
   #popVetsDisvar <- c("C21007_005E", "C21007_008E", "C21007_020E", "C21007_023E"),
   estimatedWithDisabilityVariable <- subset(
-    acsVariableTable2017,
+    acs2017VariableTable,
     str_detect(name, "B18101_") & str_detect(label, "With a disability")
   ) %>%
     .$name %>%
@@ -176,70 +184,79 @@ acsVariableList <- c(
     str_pad(c(2:16), 2, "left", pad = "0"),
     "E"
   ),
-  hhSnpOvr60var <- "B22001_003E",
-  medHHIncvar <- "B22008_001E"
+  householdOnSNAPFamilyMemberOver60Variable <- "B22001_003E",
+  medianHouseholdIncomeVariable <- "B22008_001E"
 )
 
+# 2019-12-06 TRRILEY: 
+# turn the following list into a data frame with 3 columns:
+# 1. variable name, 2. description, 3. shapefile-compatible field name
 acsVariableLabelList <- c(
   "GEOID" = "GEOID",
   "NAME" = "Geography Name",
-  "popTot" = "Total Population",
-  "popSub18" = "Population under 18 years old",
-  "pop18_65" = "Population between 18 and 65 years old",
-  "popOvr65" = "Population over 65 years old",
-  "popVets" = "",
-  "popDis" = "",
-  "popPov" = "",
-  "popNoCar" = "",
-  "gini" = "",
-  "perCapInc" = "",
-  "popNoDip" = "",
-  "hhSnpOver60" = "Households with Persons Over 60 receiving SNAP",
-  "medHHInc" = "Median Household Income"
+  "estimatedTotal" = "Total Population",
+  "estimatedUnder18" = "Population under 18 years old",
+  "estimatedOver18Under65" = "Population between 18 and 65 years old",
+  "estimatedOver65" = "Population over 65 years old",
+  "estimatedVeterans" = "Population with Veteran Status",
+  "estimatedWithDisability" = "",
+  "estimatedIncomeBelowPoverty" = "",
+  "estimatedNoCarsAvailable" = "",
+  "giniCoefficient" = "",
+  "incomePerCapita" = "",
+  "estimatedNoDiploma" = "",
+  "householdOnSNAPFamilyMemberOver60" = "Households receiving SNAP with Persons Over 60",
+  "medianHouseholdIncome" = "Median Household Income"
 )
 
-r6ctyTbl <- select(r6ctyTbl_raw, c(GEOID, NAME, one_of(acsVariableList))) %>%
+illinoisCountyTable <- select(
+  illinoisCountyData,
+  c(GEOID, NAME, one_of(acsVariableList))
+) %>%
   mutate(
-    popTot = rowSums(.[names(.) %in% estimatedTotalVariable]),
-    popSub18 = rowSums(.[names(.) %in% estimatedUnder18Variable]),
-    pop18_65 = rowSums(.[names(.) %in% estimatedOver18Under65Variable]),
-    popOvr65 = rowSums(.[names(.) %in% estimatedOver65Variable]),
-    popVets = rowSums(.[names(.) %in% estimatedVeteransVariable]),
-    popDis = rowSums(.[names(.) %in% estimatedWithDisabilityVariable]),
-    popPov = rowSums(.[names(.) %in% estimatedIncomeBelowPovertyVariable]),
-    popNoCar = rowSums(.[names(.) %in% estimatedNoCarsAvailableVariable]),
-    popGQ = rowSums(.[names(.) %in% estimatedGroupQuartersVariable]),
-    gini = rowSums(.[names(.) %in% giniCoefficientVariable]),
-    perCapInc = rowSums(.[names(.) %in% incomePerCapitaVariable]),
-    popNoDip = rowSums(.[names(.) %in% estimatedNoDiplomaVariable]),
-    hhSnpOvr60 = rowSums(.[names(.) %in% hhSnpOvr60var]),
-    medHHInc = rowSums(.[names(.) %in% medHHIncvar])
+    estimatedTotal = rowSums(.[names(.) %in% estimatedTotalVariable]),
+    estimatedUnder18 = rowSums(.[names(.) %in% estimatedUnder18Variable]),
+    estimatedOver18Under65 = rowSums(.[names(.) %in% estimatedOver18Under65Variable]),
+    estimatedOver65 = rowSums(.[names(.) %in% estimatedOver65Variable]),
+    estimatedVeterans = rowSums(.[names(.) %in% estimatedVeteransVariable]),
+    estimatedWithDisability = rowSums(.[names(.) %in% estimatedWithDisabilityVariable]),
+    estimatedIncomeBelowPoverty = rowSums(.[names(.) %in% estimatedIncomeBelowPovertyVariable]),
+    estimatedNoCarsAvailable = rowSums(.[names(.) %in% estimatedNoCarsAvailableVariable]),
+    estimatedGroupQuarters = rowSums(.[names(.) %in% estimatedGroupQuartersVariable]),
+    giniCoefficient = rowSums(.[names(.) %in% giniCoefficientVariable]),
+    incomePerCapita = rowSums(.[names(.) %in% incomePerCapitaVariable]),
+    estimatedNoDiploma = rowSums(.[names(.) %in% estimatedNoDiplomaVariable]),
+    householdOnSNAPFamilyMemberOver60 = rowSums(.[names(.) %in% householdOnSNAPFamilyMemberOver60Variable]),
+    medianHouseholdIncome = rowSums(.[names(.) %in% medianHouseholdIncomeVariable])
   ) %>%
   select(-matches("^(B|C)"))
 
-r6trTbl <- select(r6trTbl_raw, c(GEOID, NAME, one_of(acsVariableList))) %>%
+region6TractTable <- select(
+  region6TractData,
+  c(GEOID, NAME, one_of(acsVariableList))
+) %>%
   mutate(
-    popTot = rowSums(.[names(.) %in% estimatedTotalVariable]),
-    popSub18 = rowSums(.[names(.) %in% estimatedUnder18Variable]),
-    pop18_65 = rowSums(.[names(.) %in% estimatedOver18Under65Variable]),
-    popOvr65 = rowSums(.[names(.) %in% estimatedOver65Variable]),
-    popVets = rowSums(.[names(.) %in% estimatedVeteransVariable]),
-    popDis = rowSums(.[names(.) %in% estimatedWithDisabilityVariable]),
-    popPov = rowSums(.[names(.) %in% estimatedIncomeBelowPovertyVariable]),
-    popNoCar = rowSums(.[names(.) %in% estimatedNoCarsAvailableVariable]),
-    popGQ = rowSums(.[names(.) %in% estimatedGroupQuartersVariable]),
-    gini = rowSums(.[names(.) %in% giniCoefficientVariable]),
-    perCapInc = rowSums(.[names(.) %in% incomePerCapitaVariable]),
-    popNoDip = rowSums(.[names(.) %in% estimatedNoDiplomaVariable]),
-    hhSnpOvr60 = rowSums(.[names(.) %in% hhSnpOvr60var]),
-    medHHInc = rowSums(.[names(.) %in% medHHIncvar])
+    estimatedTotal = rowSums(.[names(.) %in% estimatedTotalVariable]),
+    estimatedUnder18 = rowSums(.[names(.) %in% estimatedUnder18Variable]),
+    estimatedOver18Under65 = rowSums(.[names(.) %in% estimatedOver18Under65Variable]),
+    estimatedOver65 = rowSums(.[names(.) %in% estimatedOver65Variable]),
+    estimatedVeterans = rowSums(.[names(.) %in% estimatedVeteransVariable]),
+    estimatedWithDisability = rowSums(.[names(.) %in% estimatedWithDisabilityVariable]),
+    estimatedIncomeBelowPoverty = rowSums(.[names(.) %in% estimatedIncomeBelowPovertyVariable]),
+    estimatedNoCarsAvailable = rowSums(.[names(.) %in% estimatedNoCarsAvailableVariable]),
+    estimatedGroupQuarters = rowSums(.[names(.) %in% estimatedGroupQuartersVariable]),
+    giniCoefficient = rowSums(.[names(.) %in% giniCoefficientVariable]),
+    incomePerCapita = rowSums(.[names(.) %in% incomePerCapitaVariable]),
+    estimatedNoDiploma = rowSums(.[names(.) %in% estimatedNoDiplomaVariable]),
+    householdOnSNAPFamilyMemberOver60 = rowSums(.[names(.) %in% householdOnSNAPFamilyMemberOver60variable]),
+    medianHouseholdIncome = rowSums(.[names(.) %in% medianHouseholdIncomevar])
   ) %>%
   dplyr::select(-matches("^(B|C)"))
 
 
 # get data for Tableau ----------------------------------------------------
 CtyTbl_T <- purrr::map_dfr(
-  dplyr::filter(acsTableInventory, geo_level != "block")[[1]], 
+  dplyr::filter(censusDataInventory, geo_level != "block")[[1]], 
   ~ tidycensus::get_acs(
     geography = "county",
     table = .,
@@ -250,11 +267,11 @@ CtyTbl_T <- purrr::map_dfr(
     output = "tidy"
   )
 ) %>%
-  dplyr::left_join(acsVariableTable2017, by = c("variable" = "name")) %T>%
+  dplyr::left_join(acs2017VariableTable, by = c("variable" = "name")) %T>%
   readr::write_csv(paste(chartDataDirectory, "data", "CtyTbl_T.csv", sep = "/"))
 
 TrTbl_T <- purrr::map_dfr(
-  dplyr::filter(acsTableInventory, geo_level != "block")[[1]], 
+  dplyr::filter(censusDataInventory, geo_level != "block")[[1]], 
   ~ tidycensus::get_acs(
     geography = "tract",
     table = .,
@@ -265,7 +282,7 @@ TrTbl_T <- purrr::map_dfr(
     output = "tidy"
   )
 ) %>%
-  dplyr::left_join(acsVariableTable2017, by = c("variable" = "name")) %>%
+  dplyr::left_join(acs2017VariableTable, by = c("variable" = "name")) %>%
   dplyr::semi_join(ruralTractTbl, by = "GEOID") %T>%
   readr::write_csv(paste(chartDataDirectory, "RrlTrTbl_T.csv", sep = "/"))
 
@@ -279,7 +296,6 @@ BgTbl_T <- tidycensus::get_acs(geography = "block group",
 
 
 # LEHD data ---------------------------------------------------------------
-setwd("G:/_Projects/HSTP/data_in")
 # ctyOD <- grab_lodes(state = "il", year = 2017:2010, lodes_type = "od", job_type = "JT01", segment = "S000", state_part = "main", agg_geo = "county"))
 # ctyOD <- subset(ctyOD, str_trunc(w_county, 3, "left", ellipsis = "") %in% region6CountyList | str_trunc(h_county, 3, "left", ellipsis = "") %in% region6CountyList, select = 1:5)
 # readr::write_csv(ctyOD, paste(outputDataDirectory, "ctyOD.csv", sep = "/"))
@@ -290,16 +306,3 @@ setwd("G:/_Projects/HSTP/data_in")
 ODCountyTbl <- read_csv(paste(outputDataDirectory, "ctyOD.csv", sep = "/"), col_types = "cccci") %>%
   bind_rows(read_csv(paste(outputDataDirectory, "ctyODaux.csv", sep = "/"), col_types = "cccci"))
 ctyNames <- read_csv("ctyNames.csv")
-
-
-
-
-
-region6CountyString <- paste(region6CountyList, collapse = ",")
-region6TractString <- paste(unique(subset(region6TractData2017, str_trunc(GEOID, 5, "right", "")==), collapse = ",")
-
-censusapi::getCensus(name = "dec/sf1",
-          vintage = 2010,
-          vars = c("P002001", "P002003"),
-          region = "block group:*",
-          regionin = paste("state:17+county:", region6CountyString, sep = ""))
