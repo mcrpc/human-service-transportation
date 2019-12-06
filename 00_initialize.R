@@ -12,21 +12,23 @@ packages <- c(
   "scales",
   "cartography",
   "lehdr",
-  "stplanr"
-  )
+  "stplanr",
+  "here"
+)
 
-lapply(packages, library, character.only = TRUE)
+invisible(lapply(packages, library, character.only = TRUE))
 options(tigris_use_cache = TRUE) # causes geometries to be stored in cache instead of re-loaded every time
 
 # initialize global variables and set environments -------------------------------
-inputDataDirectory <- "G:/_Projects/HSTP/data_in"
-outputDataDirectory <- "G:/_Projects/HSTP/data_out"
-chartDataDirectory <- "G:/_Projects/HSTP/charts/data"
-mapDirectory <- "G:/_Projects/HSTP/maps"
-acsTableInventory <- readr::read_csv("G:/_Projects/HSTP/R/inventory.csv")
+inputDataDirectory <- here::here("data", "raw")
+outputDataDirectory <- here::here("data")
+chartDirectory <- here::here("chart")
+mapDirectory <- here::here("map")
+censusDataInventoryFile <- "2019-10-25_TRILEY_census-data-inventory.csv"
+censusDataInventory <- readr::read_csv(here::here("data", acsInventoryFile))
 censusAPIKey <- "2f44a09c684e6b031d3e76f3655c169c167aeba8"
-Sys.setenv(CENSUS_KEY = apiKey)
-acsVariableTable2017 <- tidycensus::load_variables(2017, "acs5", cache = TRUE)         # !!CHANGE THIS WHEN UPDATED DATA IS RELEASED!!
+Sys.setenv(CENSUS_KEY = censusAPIKey)
+acs2017VariableTable <- tidycensus::load_variables(2017, "acs5", cache = TRUE)         # !!CHANGE THIS WHEN UPDATED DATA IS RELEASED!!
 
 # initialize global functions ---------------------------------------------
 getArea <- function(sf) {
@@ -37,6 +39,7 @@ coalesceByColumn <- function(df) {
 } # useful function for coalescing a table by columns -- https://stackoverflow.com/a/45515491
 
 # source other scripts to begin processing --------------------------------
-
-
+source(here::here("01_retrieve-data.R"))
+source(here::here("02_analyze-data.R"))
+source(here::here("03_create-graphics.R"))
 
