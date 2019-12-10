@@ -8,39 +8,68 @@ columnTypeList <- readr::cols(GEOID = col_character())
 
 # load data from network drive --------------------------------------------
 # illinois county data
-illinoisCountyDataFile <- "illinois-counties_ACS-2013-2017.csv"
-illinoisCountyData <- readr::read_csv(
-  here::here("data", "raw", illinoisCountyDataFile),
-  col_types = columnTypeList
+illinoisCountyDataFile <- paste(
+  outputDataDirectory,
+  "illinois-counties_ACS-2013-2017.csv",
+  sep = "/"
 )
+illinoisCountyData <- tryCatch(
+  {
+    readr::read_csv(
+      illinoisCountyDataFile,
+      col_types = columnTypeList
+    )
+  },
+  error = function(err) {
+    censusTable <- censusapi::getCensus(
+      name = "dec/sf1",
+      vintage = censusYear,
+      vars = c("P002001", "P002003"),
+      region = "county:*",
+      regionin = "state:17"
+    ) %>%
+      dplyr::mutate(
+        GEOID = paste0(state, county, sep = ""),
+        population2010 = P002001,
+        percentUrban2010 = P002003/P002001
+      ) %>%
+      dplyr::select(-c(state, county, P002001, P002003)) %>%
+      tibble::as_tibble()
+    
+    acsTable <- purrr::map_dfr(
+      dplyr::filter(censusDataInventory, geo_level != "block")[[1]], 
+      ~ tidycensus::get_acs(
+        geography = "county",
+        table = .,
+        state = "17",
+        year = acsYear,
+        survey = acsSurvey,
+        output = "wide"
+      )
+    ) %>%
+      dplyr::group_by(GEOID) %>%
+      dplyr::summarize_all(coalesceByColumn)
+    
+    illinoisCountyData <- dplyr::left_join(censusTable, acsTable)
+    readr::write_csv(illinoisCountyData, illinoisCountyDataFile)
+  }
+)
+  
 # region 6 tract data
-region6TractDataFile <- "region-6-tracts_ACS-2013-2017.csv"
+region6TractDataFile <- paste(
+  outputDataDirectory,
+  "region-6-tracts_ACS-2013-2017.csv"
+)
 region6TractData <- readr::read_csv(
-  here::here("data", "raw", region6TractDataFile),
+  region6TractDataFile,
   col_types = columnTypeList
 )
 # region 6 block group data
 region6BlockGroupDataFile <- "region-6-block-groups_ACS-2013-2017.csv"
 region6BlockGroupData <- readr::read_csv(
-  here::here("data", "raw", region6BlockGroupDataFile),
+  paste(outputDataDirectory, region6BlockGroupDataFile, sep = "/"),
   col_types = columnTypeList
 )
-# illinois veteran's health administration medical facility data
-illinoisVHAFacilityLayerFile <- "Veterans_Health_Administration_Medical_Facilities.shp"
-illinoisVHAFacilityLayer <- st_read(
-  here::here("data", "raw", illinoisVHAFacilityLayerFile)
-) %>%
-  select(c(NAME, FIPS, PRIM_SVC)) %>%
-  subset(str_starts(FIPS, '17')) %>%
-  st_transform(3443)
-# illinois USGS point of information data
-illinoisUSGSPOILayerFile <- "Struct_Point.shp"
-illinoisUSGSPOILayer <- st_read(
-  here::here("data", "raw", illinoisUSGSPOILayerFile)
-) %>%
-  select(c(OBJECTID, FCode, Name)) %>%
-  subset(substr(FCode, 0, 3) %in% list) %>%
-  st_transform(3443)
 
 # retrieve data from API, if data not found on network drive --------------
 # illinois county data
