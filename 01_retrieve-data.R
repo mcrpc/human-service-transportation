@@ -51,102 +51,100 @@ illinoisCountyData <- tryCatch(
       dplyr::summarize_all(coalesceByColumn)
     
     illinoisCountyData <- dplyr::left_join(censusTable, acsTable)
-    readr::write_csv(illinoisCountyData, illinoisCountyDataFile)
+    readr::write_csv(illinoisCountyData, illinoisCountyDataFile, sep = "/")
   }
 )
   
 # region 6 tract data
-region6TractDataFile <- paste(
+illinoisTractDataFile <- paste(
   outputDataDirectory,
-  "region-6-tracts_ACS-2013-2017.csv"
+  "illinois-tracts_ACS-2013-2017.csv",
+  sep = "/"
 )
-region6TractData <- readr::read_csv(
-  region6TractDataFile,
-  col_types = columnTypeList
+illinoisTractData <- tryCatch(
+  {
+    readr::read_csv(
+      illinoisTractDataFile,
+      col_types = columnTypeList
+    )
+  },
+  error = function(err) {
+    censusTable <- censusapi::getCensus(
+      name = "dec/sf1",
+      vintage = censusYear,
+      vars = c("P002001", "P002003"),
+      region = "tract:*",
+      regionin = "state:17"
+    ) %>%
+      dplyr::mutate(
+        GEOID = paste0(state, county, tract, sep = ""),
+        population2010 = P002001,
+        percentUrban2010 = P002003/P002001
+      ) %>%
+      dplyr::select(-c(state, county, P002001, P002003)) %>%
+      tibble::as_tibble()
+    
+    acsTable <- purrr::map_dfr(
+      dplyr::filter(censusDataInventory, geo_level != "block")[[1]], 
+      ~ tidycensus::get_acs(
+        geography = "tract",
+        table = .,
+        state = "17",
+        #county = region6CountyList,
+        year = acsYear,
+        survey = acsSurvey,
+        output = "wide"
+      )
+    ) %>%
+      tidyr::gather(variable, value, -GEOID, na.rm = TRUE) %>%
+      dplyr::group_by(GEOID, variable) %>%
+      dplyr::distinct(value) %>%
+      tidyr::spread(variable, value)
+    
+    illinoisTractData <- dplyr::right_join(censusTable, acsTable)
+    readr::write_csv(illinoisTractData, illinoisTractDataFile, sep = "/")
+  }
 )
+
 # region 6 block group data
-region6BlockGroupDataFile <- "region-6-block-groups_ACS-2013-2017.csv"
-region6BlockGroupData <- readr::read_csv(
-  paste(outputDataDirectory, region6BlockGroupDataFile, sep = "/"),
-  col_types = columnTypeList
+region6BlockGroupDataFile <- paste(
+  outputDataDirectory,
+  "region-6-block-groups_ACS-2013-2017.csv",
+  sep = "/"
 )
-
-# retrieve data from API, if data not found on network drive --------------
-# illinois county data
-if (!exists("illinoisCountyData")) {
-  censusTable <- censusapi::getCensus(
-    name = "dec/sf1",
-    vintage = censusYear,
-    vars = c("P002001", "P002003"),
-    region = "county:*",
-    regionin = "state:17"
-  ) %>%
-    dplyr::mutate(
-      GEOID = paste0(state, county, sep = ""),
-      population2010 = P002001,
-      percentUrban2010 = P002003/P002001
-    ) %>%
-    dplyr::select(-c(state, county, P002001, P002003)) %>%
-    tibble::as_tibble()
-  
-  acsTable <- purrr::map_dfr(
-    dplyr::filter(censusDataInventory, geo_level != "block")[[1]], 
-    ~ tidycensus::get_acs(
-      geography = "county",
-      table = .,
-      state = "17",
-      year = acsYear,
-      survey = acsSurvey,
-      output = "wide"
+region6BlockGroupData <- tryCatch(
+  {
+    readr::read_csv(
+      region6BlockGroupDataFile,
+      col_types = columnTypeList
     )
-  ) %>%
-    dplyr::group_by(GEOID) %>%
-    dplyr::summarize_all(coalesceByColumn)
-  
-  illinoisCountyData <- dplyr::left_join(censusTable, acsTable)
-  readr::write_csv(illinoisCountyData, illinoisCountyDataFile)
-}
-
-# region 6 tract data
-if (!exists("region6TractData")) {
-  censusTable <- censusapi::getCensus(
-    name = "dec/sf1",
-    vintage = censusYear,
-    vars = c("P002001", "P002003"),
-    region = "tract:*",
-    regionin = "state:17"
-  ) %>%
-    dplyr::mutate(
-      GEOID = paste0(state, county, tract, sep = ""),
-      population2010 = P002001,
-      percentUrban2010 = P002003/P002001
+  },
+  error = function(err) {
+    # 2019-12-06 - TRRILEY:
+    # census API does not support requests for decennial census data for block
+    # groups across different tracts and counties, so P002001 and P002003 cannot
+    # be retrieved for region 6 block groups and urban population percentage
+    # cannot be determined at this time
+    
+    acsTable <- purrr::map_dfr(
+      dplyr::filter(censusDataInventory, geo_level == "block group")[[1]], 
+      ~ tidycensus::get_acs(
+        geography = "block group",
+        table = .,
+        state = "17",
+        county = region6CountyList,
+        year = acsYear,
+        survey = acsSurvey,
+        output = "wide"
+      )
     ) %>%
-    dplyr::select(-c(state, county, P002001, P002003)) %>%
-    tibble::as_tibble()
-  
-  acsTable <- purrr::map_dfr(
-    dplyr::filter(censusDataInventory, geo_level != "block")[[1]], 
-    ~ tidycensus::get_acs(
-      geography = "tract",
-      table = .,
-      state = "17",
-      county = region6CountyList,
-      year = acsYear,
-      survey = acsSurvey,
-      output = "wide"
-    )
-  ) %>%
-    dplyr::group_by(GEOID) %>%
-    dplyr::summarize_all(coalesceByColumn)
-  
-  region6TractData <- dplyr::right_join(censusTable, acsTable)
-  readr::write_csv(
-    region6TractData,
-    here::here("data", "raw", region6TractDataFile)
-  )
-}
-
-
+      dplyr::group_by(GEOID) %>%
+      dplyr::summarize_all(coalesceByColumn)
+    
+    region6BlockGroupData <- acsTable
+    readr::write_csv(region6BlockGroupData, region6BlockGroupDataFile)
+  }
+)
 
 # region 6 block group data
 if (!exists("region6BlockGroupData")) {
