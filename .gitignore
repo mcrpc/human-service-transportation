@@ -4,5 +4,4 @@
 *.RData
 *.Rhistory
 *.Rproj.user
-.Rhistory
-/*.Ink
+*.lnk
