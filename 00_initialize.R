@@ -26,7 +26,7 @@ outputChartDirectory <- here::here("chart")
 outputMapDirectory <- here::here("map")
 censusDataInventoryFile <- paste(
   inputDataDirectory,
-  "2019-10-25_TRRILEY_census-data-inventory.csv",
+  "census-data-inventory.csv",
   sep = "/"
 )
 censusDataInventory <- readr::read_csv(censusDataInventoryFile)
