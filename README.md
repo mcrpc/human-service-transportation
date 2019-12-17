@@ -1,2 +1,3 @@
 # HSTP
- Repository for scripts used in HSTP update
+ Retrieves, processes, and analyzes census data in support of the Human Service Transportation Plan update.
+ 
