@@ -1,3 +1,20 @@
+acsVariableTibble <- tibble::tribble(
+  ~short_name, ~long_name, ~acs_variables_2017,
+  "est_pop", "Population Estimate", c("B01001_001E"),
+  "est_blw18", "Population Under 18 Estimate", paste0("B01001_0", stringr::str_pad(c(3:6,27:30), 2, "left", pad = "0"), "E"),
+  "est_18to65", "Population Between 18 and 65 Estimate", paste0("B01001_0", str_pad(c(7:9,10:19,31:43), 2, "left", pad = "0"), "E"),
+  "est_ovr65", NULL, NULL,
+  "est_vet", NULL, NULL,
+  "est_dsblty", NULL, NULL,
+  "est_blwpov", NULL, NULL,
+  "est_nocars", NULL, NULL,
+  "gini", NULL, NULL,
+  "est_nodipl", NULL, NULL,
+  "inc_percap", NULL, NULL,
+  "inc_medhh", NULL, NULL,
+  "est_hhSo65", NULL, NULL,
+)
+
 # start making sense of all this data -------------------------------------
 acsVariableList <- c(
   estimatedTotalVariable <- "B01001_001E",
