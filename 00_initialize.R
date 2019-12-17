@@ -32,7 +32,7 @@ censusDataInventoryFile <- paste(
 censusDataInventory <- readr::read_csv(censusDataInventoryFile)
 censusAPIKey <- "2f44a09c684e6b031d3e76f3655c169c167aeba8"
 Sys.setenv(CENSUS_KEY = censusAPIKey)
-acs2017VariableTable <- tidycensus::load_variables(2017, "acs5", cache = TRUE)         # !!CHANGE THIS WHEN UPDATED DATA IS RELEASED!!
+acs2017VariableTable <- tidycensus::load_variables(2017, "acs5", cache = TRUE)
 
 # initialize global functions ---------------------------------------------
 getArea <- function(sf) {
@@ -44,6 +44,7 @@ coalesceByColumn <- function(df) {
 
 # source other scripts to begin processing --------------------------------
 source(here::here("01_retrieve-data.R"))
-source(here::here("02_analyze-data.R"))
-source(here::here("03_create-graphics.R"))
+source(here::here("02_process-data.R"))
+source(here::here("03_analyze-data.R"))
+source(here::here("04_create-graphics.R"))
 
