@@ -1,118 +1,52 @@
 acsVariableTibble <- tibble::tribble(
   ~short_name, ~long_name, ~acs_variables_2017,
-  "est_pop", "Population Estimate", c("B01001_001E"),
-  "est_blw18", "Population Under 18 Estimate", paste0("B01001_0", stringr::str_pad(c(3:6,27:30), 2, "left", pad = "0"), "E"),
-  "est_18to65", "Population Between 18 and 65 Estimate", paste0("B01001_0", str_pad(c(7:9,10:19,31:43), 2, "left", pad = "0"), "E"),
-  "est_ovr65", NULL, NULL,
-  "est_vet", NULL, NULL,
-  "est_dsblty", NULL, NULL,
-  "est_blwpov", NULL, NULL,
-  "est_nocars", NULL, NULL,
-  "gini", NULL, NULL,
-  "est_nodipl", NULL, NULL,
-  "inc_percap", NULL, NULL,
-  "inc_medhh", NULL, NULL,
-  "est_hhSo65", NULL, NULL,
+  "est_pop", "Population Estimate", est_pop <- c("B01001_001E"),
+  "est_blw18", "Population Under 18 Estimate", est_blw18 <- paste0("B01001_0", stringr::str_pad(c(3:6,27:30), 2, "left", pad = "0"), "E"),
+  "est_18to65", "Population Between 18 and 65 Estimate", est_18to65 <- paste0("B01001_0", stringr::str_pad(c(7:9,10:19,31:43), 2, "left", pad = "0"), "E"),
+  "est_ovr65", "est_ovr65", est_ovr65 <- paste0("B01001_0", c(20:25, 44:49), "E"),
+  "est_vet", "est_vet", est_vet <- "B21001_002E",
+  "est_dsblty", "est_dsblty", est_dsblty <- subset(acs2017VariableTable, stringr::str_detect(name, "B18101_") & stringr::str_detect(label, "With a disability")) %>% .$name %>% paste(.,"E",sep=""),
+  "est_blwpov", "est_blwpov", est_blwpov <- "B17020_002E",
+  "est_nocars", "est_nocars", est_nocars <- "B08141_002E",
+  "gini", "GINI Coefficient", gini <- "B19083_001E",
+  "est_nodipl", "est_nodipl", est_nodipl <- paste0("B15003_0", stringr::str_pad(c(2:16), 2, "left", pad = "0"), "E"),
+  "inc_percap", "inc_percap", inc_percap <- "B19301_001E",
+  "inc_medhh", "inc_medhh", inc_medhh <- "B22008_001E",
+  "est_hhSo65", "est_hhSo65", est_hhSo65 <- "B22001_003E"
 )
 
-# start making sense of all this data -------------------------------------
-acsVariableList <- c(
-  estimatedTotalVariable <- "B01001_001E",
-  estimatedUnder18Variable <- paste0(
-    "B01001_0",
-    str_pad(c(3:6,27:30), 2, "left", pad = "0"),
-    "E"
-  ),
-  estimatedOver18Under65Variable <- paste0(
-    "B01001_0", 
-    str_pad(c(7:9,10:19,31:43), 2, "left", pad = "0"), 
-    "E"
-  ),
-  estimatedOver65Variable <- paste0("B01001_0", c(20:25, 44:49), "E"),
-  estimatedVeteransVariable <- "B21001_002E",
-  #popVetsPovvar <- c("C21007_004E", "C21007_019E"),
-  #popVetsDisvar <- c("C21007_005E", "C21007_008E", "C21007_020E", "C21007_023E"),
-  estimatedWithDisabilityVariable <- subset(
-    acs2017VariableTable,
-    str_detect(name, "B18101_") & str_detect(label, "With a disability")
-  ) %>%
-    .$name %>%
-    paste(.,"E",sep=""),
-  estimatedIncomeBelowPovertyVariable <- "B17020_002E",
-  estimatedNoCarsAvailableVariable <- "B08141_002E",
-  estimatedGroupQuartersVariable <- "B26001_001E",
-  giniCoefficientVariable <- "B19083_001E",
-  incomePerCapitaVariable <- "B19301_001E",
-  estimatedNoDiplomaVariable <- paste0(
-    "B15003_0",
-    str_pad(c(2:16), 2, "left", pad = "0"),
-    "E"
-  ),
-  householdOnSNAPFamilyMemberOver60Variable <- "B22001_003E",
-  medianHouseholdIncomeVariable <- "B22008_001E"
+# create function to print warnings when 
+warningMessage <- function(object) { 
+  paste(
+    "Error returned while transmuting",
+    substitute(object),
+    "\nThis is most likely because it was already transmuted"
+  )
+}
+
+tryCatch(
+  {
+    illinoisTractData <- illinoisTractData %>%
+      transmute(
+        GEOID = GEOID,
+        NAME = NAME,
+        pct_urban = percentUrban2010,
+        est_pop = rowSums(.[names(.) %in% est_pop]),
+        est_blw18 = rowSums(.[names(.) %in% est_blw18]),
+        est_18to65 = rowSums(.[names(.) %in% est_18to65]),
+        est_ovr65 = rowSums(.[names(.) %in% est_ovr65]),
+        est_vet = rowSums(.[names(.) %in% est_vet]),
+        est_dsblty = rowSums(.[names(.) %in% est_dsblty]),
+        est_blwpov = rowSums(.[names(.) %in% est_blwpov]),
+        est_nocars = rowSums(.[names(.) %in% est_nocars]),
+        gini = rowSums(.[names(.) %in% gini]),
+        est_nodipl = rowSums(.[names(.) %in% est_nodipl]),
+        inc_percap = rowSums(.[names(.) %in% inc_percap]),
+        inc_medhh = rowSums(.[names(.) %in% inc_medhh]),
+        est_hhSo65 = rowSums(.[names(.) %in% est_hhSo65])
+      )
+  },
+  error = function(err) {
+    warning(warningMessage(illinoisTractData), call. = FALSE)
+  }
 )
-
-# 2019-12-06 TRRILEY: 
-# turn the following list into a data frame with 3 columns:
-# 1. variable name, 2. description, 3. shapefile-compatible field name
-acsVariableLabelList <- c(
-  "GEOID" = "GEOID",
-  "NAME" = "Geography Name",
-  "estimatedTotal" = "Total Population",
-  "estimatedUnder18" = "Population under 18 years old",
-  "estimatedOver18Under65" = "Population between 18 and 65 years old",
-  "estimatedOver65" = "Population over 65 years old",
-  "estimatedVeterans" = "Population with Veteran Status",
-  "estimatedWithDisability" = "",
-  "estimatedIncomeBelowPoverty" = "",
-  "estimatedNoCarsAvailable" = "",
-  "giniCoefficient" = "",
-  "incomePerCapita" = "",
-  "estimatedNoDiploma" = "",
-  "householdOnSNAPFamilyMemberOver60" = "Households receiving SNAP with Persons Over 60",
-  "medianHouseholdIncome" = "Median Household Income"
-)
-
-illinoisCountyTable <- select(
-  illinoisCountyData,
-  c(GEOID, NAME, one_of(acsVariableList))
-) %>%
-  mutate(
-    estimatedTotal = rowSums(.[names(.) %in% estimatedTotalVariable]),
-    estimatedUnder18 = rowSums(.[names(.) %in% estimatedUnder18Variable]),
-    estimatedOver18Under65 = rowSums(.[names(.) %in% estimatedOver18Under65Variable]),
-    estimatedOver65 = rowSums(.[names(.) %in% estimatedOver65Variable]),
-    estimatedVeterans = rowSums(.[names(.) %in% estimatedVeteransVariable]),
-    estimatedWithDisability = rowSums(.[names(.) %in% estimatedWithDisabilityVariable]),
-    estimatedIncomeBelowPoverty = rowSums(.[names(.) %in% estimatedIncomeBelowPovertyVariable]),
-    estimatedNoCarsAvailable = rowSums(.[names(.) %in% estimatedNoCarsAvailableVariable]),
-    estimatedGroupQuarters = rowSums(.[names(.) %in% estimatedGroupQuartersVariable]),
-    giniCoefficient = rowSums(.[names(.) %in% giniCoefficientVariable]),
-    incomePerCapita = rowSums(.[names(.) %in% incomePerCapitaVariable]),
-    estimatedNoDiploma = rowSums(.[names(.) %in% estimatedNoDiplomaVariable]),
-    householdOnSNAPFamilyMemberOver60 = rowSums(.[names(.) %in% householdOnSNAPFamilyMemberOver60Variable]),
-    medianHouseholdIncome = rowSums(.[names(.) %in% medianHouseholdIncomeVariable])
-  ) %>%
-  select(-matches("^(B|C)"))
-
-region6TractTable <- select(
-  region6TractData,
-  c(GEOID, NAME, one_of(acsVariableList))
-) %>%
-  mutate(
-    estimatedTotal = rowSums(.[names(.) %in% estimatedTotalVariable]),
-    estimatedUnder18 = rowSums(.[names(.) %in% estimatedUnder18Variable]),
-    estimatedOver18Under65 = rowSums(.[names(.) %in% estimatedOver18Under65Variable]),
-    estimatedOver65 = rowSums(.[names(.) %in% estimatedOver65Variable]),
-    estimatedVeterans = rowSums(.[names(.) %in% estimatedVeteransVariable]),
-    estimatedWithDisability = rowSums(.[names(.) %in% estimatedWithDisabilityVariable]),
-    estimatedIncomeBelowPoverty = rowSums(.[names(.) %in% estimatedIncomeBelowPovertyVariable]),
-    estimatedNoCarsAvailable = rowSums(.[names(.) %in% estimatedNoCarsAvailableVariable]),
-    estimatedGroupQuarters = rowSums(.[names(.) %in% estimatedGroupQuartersVariable]),
-    giniCoefficient = rowSums(.[names(.) %in% giniCoefficientVariable]),
-    incomePerCapita = rowSums(.[names(.) %in% incomePerCapitaVariable]),
-    estimatedNoDiploma = rowSums(.[names(.) %in% estimatedNoDiplomaVariable]),
-    householdOnSNAPFamilyMemberOver60 = rowSums(.[names(.) %in% householdOnSNAPFamilyMemberOver60variable]),
-    medianHouseholdIncome = rowSums(.[names(.) %in% medianHouseholdIncomevar])
-  ) %>%
-  dplyr::select(-matches("^(B|C)"))
