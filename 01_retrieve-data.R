@@ -149,6 +149,8 @@ region6BlockGroupData <- tryCatch(
     ) %>%
       dplyr::group_by(GEOID) %>%
       dplyr::summarize_all(coalesceByColumn)
+    # the script hangs on the above line if we don't limit ourselves to just
+    # region 6 block groups--probably an issue with coalesceByColumn function
     
     region6BlockGroupData <- acsTable
     readr::write_csv(region6BlockGroupData, region6BlockGroupDataFile)

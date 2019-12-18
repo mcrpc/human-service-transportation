@@ -1,3 +1,5 @@
+# create tibble to store relationship between desired variable's name,
+# its description, and the ACS variables from which it is derived
 acsVariableTibble <- tibble::tribble(
   ~short_name, ~long_name, ~acs_variables_2017,
   "est_pop", "Population Estimate", est_pop <- c("B01001_001E"),
@@ -15,7 +17,7 @@ acsVariableTibble <- tibble::tribble(
   "est_hhSo65", "est_hhSo65", est_hhSo65 <- "B22001_003E"
 )
 
-# create function to print warnings when 
+# create function to print warnings when a tibble has already been transmuted
 warningMessage <- function(object) { 
   paste(
     "Error returned while transmuting",
@@ -24,10 +26,12 @@ warningMessage <- function(object) {
   )
 }
 
+# the tryCatch statement allows us to avoid problems when the tibble has
+# already been transmuted, but will mask when other errors happen
 tryCatch(
   {
     illinoisTractData <- illinoisTractData %>%
-      transmute(
+      dplyr::transmute(
         GEOID = GEOID,
         NAME = NAME,
         pct_urban = percentUrban2010,
@@ -48,5 +52,60 @@ tryCatch(
   },
   error = function(err) {
     warning(warningMessage(illinoisTractData), call. = FALSE)
+  }
+)
+
+tryCatch(
+  {
+    illinoisCountyData <- illinoisCountyData %>%
+      dplyr::transmute(
+        GEOID = GEOID,
+        countyFIPS = stringr::str_trunc(GEOID, 3, "left", ""),
+        NAME = NAME,
+        pct_urban = percentUrban2010,
+        est_pop = rowSums(.[names(.) %in% est_pop]),
+        est_blw18 = rowSums(.[names(.) %in% est_blw18]),
+        est_18to65 = rowSums(.[names(.) %in% est_18to65]),
+        est_ovr65 = rowSums(.[names(.) %in% est_ovr65]),
+        est_vet = rowSums(.[names(.) %in% est_vet]),
+        est_dsblty = rowSums(.[names(.) %in% est_dsblty]),
+        est_blwpov = rowSums(.[names(.) %in% est_blwpov]),
+        est_nocars = rowSums(.[names(.) %in% est_nocars]),
+        gini = rowSums(.[names(.) %in% gini]),
+        est_nodipl = rowSums(.[names(.) %in% est_nodipl]),
+        inc_percap = rowSums(.[names(.) %in% inc_percap]),
+        inc_medhh = rowSums(.[names(.) %in% inc_medhh]),
+        est_hhSo65 = rowSums(.[names(.) %in% est_hhSo65])
+      )
+  },
+  error = function(err) {
+    warning(warningMessage(illinoisCountyData), call. = FALSE)
+  }
+)
+
+tryCatch(
+  {
+    region6BlockGroupData <- region6BlockGroupData %>%
+      dplyr::transmute(
+        GEOID = GEOID,
+        NAME = NAME,
+        # pct_urban = percentUrban2010,
+        est_pop = rowSums(.[names(.) %in% est_pop]),
+        est_blw18 = rowSums(.[names(.) %in% est_blw18]),
+        est_18to65 = rowSums(.[names(.) %in% est_18to65]),
+        est_ovr65 = rowSums(.[names(.) %in% est_ovr65]),
+        est_vet = rowSums(.[names(.) %in% est_vet]),
+        # est_dsblty = rowSums(.[names(.) %in% est_dsblty]),
+        # est_blwpov = rowSums(.[names(.) %in% est_blwpov]),
+        # est_nocars = rowSums(.[names(.) %in% est_nocars]),
+        # gini = rowSums(.[names(.) %in% gini]),
+        # est_nodipl = rowSums(.[names(.) %in% est_nodipl]),
+        inc_percap = rowSums(.[names(.) %in% inc_percap]),
+        # inc_medhh = rowSums(.[names(.) %in% inc_medhh]),
+        # est_hhSo65 = rowSums(.[names(.) %in% est_hhSo65])
+      )
+  },
+  error = function(err) {
+    warning(warningMessage(region6BlockGroupData), call. = FALSE)
   }
 )
