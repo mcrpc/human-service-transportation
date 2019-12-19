@@ -44,8 +44,8 @@ crs <- sf::st_crs("+init=esri:102008 +lon_0=-89")
 # HSTP map function -------------------------------------------------------
 getHSTPMap <- function(
   sf,
-  backgroundLayer = countyLayer,   # "background layer"
-  foregroundLayer = region6CountyLayer, # "foreground layer"
+  backgroundLayer = countyLayer,
+  foregroundLayer = region6CountyLayer,
   variable,
   title,
   proj = crs,
@@ -54,10 +54,12 @@ getHSTPMap <- function(
   classificationStyle = "jenks",
   palette = "seq"
 ) {
-  require(tidycensus, tidyverse, tmap)
+  # 2019-12-19 TRRILEY - seems to break tmap plotting
+  # require(tidycensus, tidyverse, tmap)
   formatDollarAmount <- function(x, digits = 0) {
+    # helper function to format dollar amounts
     paste0("$", formatC(x, digits = digits, format = "f", big.mark = ","))
-  } # helper function to format dollar amounts
+  }
   tmap::tmap_mode("plot")
   if (stringr::str_length(sf$GEOID[1]) == 11) {
     geography = "Census Tracts"
@@ -156,7 +158,7 @@ suppressWarnings(
     tmap::tmap_save(
       filename = paste(
         outputMapDirectory,
-        addACSYearsToFilename("Region-6-Tract_GINI_Coefficient.pdf", acsYear),
+        addACSYearsToFilename("Region-6-Tract_GINI-Coefficient.pdf", acsYear),
         sep = "/"
       )
     )
