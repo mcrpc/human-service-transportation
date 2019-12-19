@@ -13,30 +13,32 @@ packages <- c(
   "cartography",
   "lehdr",
   "stplanr",
-  "here"
+  "here",
+  "beepr"
 )
 
 invisible(lapply(packages, library, character.only = TRUE))
 options(tigris_use_cache = TRUE) # causes geometries to be stored in cache instead of re-loaded every time
-tmap_options(
-  show.messages = FALSE,
-  output.dpi = 300
-  )
+# tmap_options(
+#   show.messages = FALSE,
+#   output.dpi = 300
+# )
 
 # initialize global variables and set environments -------------------------------
 inputDataDirectory <- here::here("data", "input")
-outputDataDirectory <- here::here("data", "output") %T>%
-  if(!dir.exists(.)) {
-    dir.create(.)
-  }
-outputChartDirectory <- here::here("chart") %T>%
-  if(!dir.exists(.)) {
-    dir.create(.)
-  }
-outputMapDirectory <- here::here("map") %T>%
-  if(!dir.exists(.)) {
-    dir.create(.)
-  }
+
+if(!dir.exists(outputDataDirectory <- here::here("data", "output"))) {
+  dir.create(outputDataDirectory)
+}
+
+if(!dir.exists(outputChartDirectory <- here::here("chart"))) {
+  dir.create(outputChartDirectory)
+}
+
+if(!dir.exists(outputMapDirectory <- here::here("map"))) {
+  dir.create(outputMapDirectory)
+}
+
 censusDataInventoryFile <- paste(
   inputDataDirectory,
   "census-data-inventory.csv",
