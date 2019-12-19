@@ -1,7 +1,5 @@
 
 # initialize local variables ----------------------------------------------
-region6CountyList <- c("113", "053", "105", "075", "091")
-acsYear <- 2017                                              # !!CHANGE THIS WHEN UPDATED DATA IS RELEASED!!
 acsSurvey <- "acs5"
 censusYear <- 2010
 columnTypeList <- readr::cols(GEOID = col_character())
@@ -17,11 +15,17 @@ columnTypeList <- readr::cols(GEOID = col_character())
 # packages, combining into one table using dplyr
 
 # illinois county data
+illinoisCountyDataFileName <- addACSYearsToFilename(
+  "illinois-counties.csv",
+  acsYear
+)
+
 illinoisCountyDataFile <- paste(
   outputDataDirectory,
-  "illinois-counties_ACS-2013-2017.csv",
+  illinoisCountyDataFileName,
   sep = "/"
 )
+
 illinoisCountyData <- tryCatch(
   {
     readr::read_csv(
@@ -60,16 +64,22 @@ illinoisCountyData <- tryCatch(
       dplyr::summarize_all(coalesceByColumn)
     
     illinoisCountyData <- dplyr::left_join(censusTable, acsTable)
-    readr::write_csv(illinoisCountyData, illinoisCountyDataFile, sep = "/")
+    readr::write_csv(illinoisCountyData, illinoisCountyDataFile)
   }
 )
   
 # illinois tract data
+illinoisTractDataFileName <- addACSYearsToFilename(
+  "illinois-tracts.csv",
+  acsYear
+)
+
 illinoisTractDataFile <- paste(
   outputDataDirectory,
-  "illinois-tracts_ACS-2013-2017.csv",
+  illinoisTractDataFileName,
   sep = "/"
 )
+
 illinoisTractData <- tryCatch(
   {
     readr::read_csv(
@@ -111,16 +121,22 @@ illinoisTractData <- tryCatch(
       tidyr::spread(variable, value)
     
     illinoisTractData <- dplyr::right_join(censusTable, acsTable)
-    readr::write_csv(illinoisTractData, illinoisTractDataFile, sep = "/")
+    readr::write_csv(illinoisTractData, illinoisTractDataFile)
   }
 )
 
 # region 6 block group data
+region6BlockGroupDataFileName <- addACSYearsToFilename(
+  "region-6-block-groups.csv",
+  acsYear
+)
+
 region6BlockGroupDataFile <- paste(
   outputDataDirectory,
-  "region-6-block-groups_ACS-2013-2017.csv",
+  region6BlockGroupDataFileName,
   sep = "/"
 )
+
 region6BlockGroupData <- tryCatch(
   {
     readr::read_csv(
