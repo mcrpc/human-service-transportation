@@ -1,3 +1,11 @@
+
+
+# define local functions --------------------------------------------------
+getACSYearsLabel <- function(acsYear) {
+  paste("Data Source: Census ACS 5-year estimates,", acsYear - 4, "-", acsYear)
+}
+
+
 # set up layers -----------------------------------------------------------
 countyLayer <- tigris::counties(c("17", "18"), cb = TRUE, class = "sf") %>%
   dplyr::mutate(area_sq_mi = ALAND * 3.861e-7) %>%
@@ -10,11 +18,14 @@ countyLayer <- tigris::counties(c("17", "18"), cb = TRUE, class = "sf") %>%
       AWATER
     )
   )
-region6CountyLayer <- dplyr::subset(
+region6CountyLayer <- subset(
   countyLayer,
   STATEFP == "17" & COUNTYFP %in% region6CountyList
 ) %>%
-  dplyr::left_join(illinoisCountyData, by = c("GEOID"))
+  dplyr::left_join(
+    select(illinoisCountyData, -NAME),
+    by = c("GEOID")
+  )
 tractLayer <- tigris::tracts(
   state = "17",
   county = region6CountyList,
@@ -31,7 +42,6 @@ crs <- sf::st_crs("+init=esri:102008 +lon_0=-89")
 #   left_join(r6bgTbl, by = "GEOID")
 
 # HSTP map function -------------------------------------------------------
-
 getHSTPMap <- function(
   sf,
   backgroundLayer = countyLayer,   # "background layer"
@@ -110,12 +120,7 @@ getHSTPMap <- function(
       text.size = .5
     ) +
     tmap::tm_credits(
-      text = paste(
-        "Data Source: Census ACS 5-year estimates,",
-        acsYear - 5,
-        "-",
-        acsYear
-      ),
+      text = getACSYearsLabel(acsYear),
       size = .5,
       bg.color = "white",
       bg.alpha = .5
@@ -123,11 +128,36 @@ getHSTPMap <- function(
   map
 }
 
-inc_percapTractMap <- getHSTPMap(
-  sf = tractLayer,
-  variable = "inc_percap",
-  title = "Income Per Capita",
-  vals = "dollars"
-) %T>%
-  tmap::tmap_save(filename = paste(outputMapDirectory, "/", acsYear, "_inc-per-cap-Tract-Map.pdf", sep = ""), width = 7, height = 7)
 
+# time to start building maps ---------------------------------------------
+suppressWarnings(
+  Region6TractIncomePerCapitaMap <- getHSTPMap(
+    sf = tractLayer,
+    variable = "inc_percap",
+    title = "Income Per Capita",
+    vals = "dollars"
+  ) %T>%
+    tmap::tmap_save(
+      filename = paste(
+        outputMapDirectory,
+        addACSYearsToFilename("Region-6-Tract_Income-per-Capita.pdf", acsYear),
+        sep = "/"
+      )
+    )
+)
+
+suppressWarnings(
+  Region6TractGINICoefficientMap <- getHSTPMap(
+    sf = tractLayer,
+    variable = "gini",
+    title = "GINI Coefficient",
+    vals = "decimal"
+  ) %T>%
+    tmap::tmap_save(
+      filename = paste(
+        outputMapDirectory,
+        addACSYearsToFilename("Region-6-Tract_GINI_Coefficient.pdf", acsYear),
+        sep = "/"
+      )
+    )
+)
