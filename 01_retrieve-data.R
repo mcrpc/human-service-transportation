@@ -65,7 +65,6 @@ illinoisCountyData <- tryCatch(
     
     illinoisCountyData <- dplyr::left_join(censusTable, acsTable)
     readr::write_csv(illinoisCountyData, illinoisCountyDataFile)
-    beep(4)
   }
 )
   
@@ -123,7 +122,6 @@ illinoisTractData <- tryCatch(
     
     illinoisTractData <- dplyr::right_join(censusTable, acsTable)
     readr::write_csv(illinoisTractData, illinoisTractDataFile)
-    beep(4)
   }
 )
 
@@ -172,7 +170,6 @@ region6BlockGroupData <- tryCatch(
     
     region6BlockGroupData <- acsTable
     readr::write_csv(region6BlockGroupData, region6BlockGroupDataFile)
-    beep(4)
   }
 )
 
