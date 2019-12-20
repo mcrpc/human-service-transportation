@@ -72,13 +72,13 @@ getHSTPMap <- function(
     legendFormat = list(fun = formatDollarAmount)
     legendTitle = paste("US Dollars,", acsYear)
   } else if (vals == "percent") {
-    legendFormat = list(fun = percent, format = "f", suffix = "%", digits = 2)
+    legendFormat = list(fun = percent, suffix = "%", digits = 2)
     legendTitle = paste(geography, acsYear, sep = ", ")
   } else if (vals == "decimal") {
-    legendFormat = list(format = "f", digits = 2)
+    legendFormat = list(digits = 2)
     legendTitle = paste(geography, acsYear, sep = ", ")
   } else {
-    legendFormat = list(format = "f", digits = 0)
+    legendFormat = list(digits = 0)
     legendTitle = paste(geography, acsYear, sep = ", ")
   }
   map <- tmap::tm_shape(
