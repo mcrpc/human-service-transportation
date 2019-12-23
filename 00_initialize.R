@@ -44,6 +44,7 @@ censusDataInventoryFile <- paste(
   "census-data-inventory.csv",
   sep = "/"
 )
+
 censusDataInventory <- readr::read_csv(censusDataInventoryFile)
 censusAPIKey <- "2f44a09c684e6b031d3e76f3655c169c167aeba8"
 Sys.setenv(CENSUS_KEY = censusAPIKey)
@@ -72,7 +73,8 @@ addACSYearsToFilename <- function(filename, acsYear) {
   paste0(firstPart, secondPart, thirdPart, sep = "")
 }
 
-# source other scripts to begin processing --------------------------------
+
+# run the scripts! --------------------------------------------------------
 source(here::here("01_retrieve-data.R"))
 source(here::here("02_process-data.R"))
 source(here::here("03_analyze-data.R"))
