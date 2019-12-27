@@ -5,6 +5,31 @@ getACSYearsLabel <- function(acsYear) {
   paste("Data Source: Census ACS 5-year estimates,", acsYear - 4, "-", acsYear)
 }
 
+illinoisSummary <- drop_na(illinoisTractData) %>%
+  subset(per_urban <= 0.5)
+# make some graphs --------------------------------------------------------
+ggplot(data = blockGroupData) +
+  geom_jitter(mapping = aes(per_vet, den_pop))
+
+ggplot(data = tractData, mapping = aes(per_blwpov)) +
+  geom_histogram()
+
+# poverty
+ggplot(data = tractData, mapping = aes(per_blwpov)) +
+  geom_histogram()
+
+poverty <- tractLayer$per_blwpov
+povertyOutliers <- subset(tractLayer, per_blwpov > (mean(poverty) + sd(poverty)))
+
+tmap::tmap_mode("view")
+tm_shape(tractLayer) +
+  tm_borders("grey") +
+  tm_shape(povertyOutliers) +
+  tm_fill("den_pop", alpha = 0.8) +
+  tm_shape(cityLayer[tractLayer,]) +
+  tm_text("NAME", size = 0.6)
+  
+
 # HSTP map function -------------------------------------------------------
 getHSTPMap <- function(
   sf,
@@ -138,7 +163,7 @@ mapVariablePalettes <- c(
   PercentNoCarPalette <- "YlOrRd",
   PercentNoDiplomaPalette <- "YlOrRd",
   PercentHouseholdSNAPOver60Palette <- "YlOrRd",
-  PopulationDensityPalette <- "plasma"
+  PopulationDensityPalette <- "YlGn"
 )
 
 # county maps -------------------------------------------------------------
@@ -354,7 +379,9 @@ suppressWarnings(
     variable = "den_pop",
     title = PopulationDensityMapTitle,
     vals = "decimal",
-    palette = PopulationDensityPalette
+    palette = PopulationDensityPalette,
+    n = 5,
+    classificationStyle = "quantile"
   ) %T>%
     tmap::tmap_save(
       filename = paste(
@@ -457,7 +484,9 @@ suppressWarnings(
     variable = "den_pop",
     title = PopulationDensityMapTitle,
     vals = "decimal",
-    palette = PopulationDensityPalette
+    palette = PopulationDensityPalette,
+    n = 5,
+    classificationStyle = "quantile"
   ) %T>%
     tmap::tmap_save(
       filename = paste(
@@ -467,4 +496,3 @@ suppressWarnings(
       )
     )
 )
-
