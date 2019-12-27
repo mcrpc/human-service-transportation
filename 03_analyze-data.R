@@ -1,4 +1,4 @@
-
+crs <- sf::st_crs("+init=esri:102008 +lon_0=-89")
 
 # set up layers -----------------------------------------------------------
 countyLayer <- tigris::counties(c("17", "18"), cb = TRUE, class = "sf") %>%
@@ -11,7 +11,8 @@ countyLayer <- tigris::counties(c("17", "18"), cb = TRUE, class = "sf") %>%
       ALAND,
       AWATER
     )
-  )
+  ) %>%
+  sf::st_transform(crs = crs)
 
 region6CountyLayer <- subset(
   countyLayer,
@@ -31,7 +32,9 @@ tractLayer <- tigris::tracts(
   dplyr::mutate(area_sq_mi = ALAND * 3.861e-7) %>%
   dplyr::select(-c(AFFGEOID, LSAD, ALAND, AWATER)) %>%
   dplyr::left_join(illinoisTractData, by = "GEOID") %>%
-  dplyr::mutate(den_pop = est_pop / area_sq_mi)
+  dplyr::mutate(den_pop = est_pop / area_sq_mi) %>%
+  subset(per_urban <= 0.5) %>%
+  sf::st_transform(crs = crs)
 
 blockGroupLayer <- tigris::block_groups(
   state = "17",
@@ -42,10 +45,6 @@ blockGroupLayer <- tigris::block_groups(
   dplyr::mutate(area_sq_mi = ALAND * 3.861e-7) %>%
   dplyr::select(-c(AFFGEOID, LSAD, ALAND, AWATER)) %>%
   dplyr::left_join(region6BlockGroupData, by = "GEOID") %>%
-  dplyr::mutate(den_pop = est_pop / area_sq_mi)
-
-crs <- sf::st_crs("+init=esri:102008 +lon_0=-89")
-# bgLyr <- block_groups("17", counties, cb = TRUE, class = "sf") %>%
-#   mutate(area_sq_mi = ALAND * 3.861e-7) %>%
-#   select(-c(AFFGEOID, LSAD, ALAND, AWATER)) %>%
-#   left_join(r6bgTbl, by = "GEOID")
+  dplyr::mutate(den_pop = est_pop / area_sq_mi) %>%
+  sf::st_transform(crs = crs) %>%
+  .[tractLayer, op = st_covered_by]

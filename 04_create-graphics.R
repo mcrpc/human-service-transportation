@@ -94,7 +94,6 @@ getHSTPMap <- function(
   map
 }
 
-
 # variables for map legends -----------------------------------------------
 # mapVariables <- c(
 #   IncomePerCapita,
