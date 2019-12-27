@@ -13,8 +13,7 @@ packages <- c(
   "cartography",
   "lehdr",
   "stplanr",
-  "here",
-  "beepr"
+  "here"
 )
 
 invisible(lapply(packages, library, character.only = TRUE))
