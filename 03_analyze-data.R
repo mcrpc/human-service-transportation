@@ -61,8 +61,15 @@ blockGroupData <- blockGroupLayer[drop = TRUE] %>%
   dplyr::select(-c(geometry)) %>%
   as_tibble
 
-illinoisTractSummary <- drop_na(illinoisTractData) %>%
-  select(c(gini, contains("inc"), contains("per"))) %>%
-  subset(per_urban <= 0.5) %>%
-  summarize_all(mean)
+# illinoisTractSummary <- illinoisTractData %>%
+#   select(c(gini, contains("inc"), contains("per"))) %>%
+#   subset(per_urban <= 0.5) %>%
+#   select(-per_urban) %>%
+#   dfSummary()
+# illinoisTractSummary
+
+# attempt to set up a trend analysis
+region6CountyList_5digit <- paste0("17", region6CountyList)
+
+
 

@@ -1,4 +1,3 @@
-
 # initialize local variables ----------------------------------------------
 acsSurvey <- "acs5"
 censusYear <- 2010
@@ -26,7 +25,7 @@ illinoisCountyDataFile <- paste(
   sep = "/"
 )
 
-illinoisCountyData <- tryCatch(
+illinoisCountyRawData <- tryCatch(
   {
     readr::read_csv(
       illinoisCountyDataFile,
@@ -63,8 +62,68 @@ illinoisCountyData <- tryCatch(
       dplyr::group_by(GEOID) %>%
       dplyr::summarize_all(coalesceByColumn)
     
-    illinoisCountyData <- dplyr::left_join(censusTable, acsTable)
-    readr::write_csv(illinoisCountyData, illinoisCountyDataFile)
+    illinoisCountyRawData <- dplyr::left_join(censusTable, acsTable)
+    readr::write_csv(illinoisCountyRawData, illinoisCountyDataFile)
+  }
+)
+
+# illinois county previous year data
+previousYear <- acsYear - 1
+
+illinoisCountyPreviousYearDataFileName <- addACSYearsToFilename(
+  "illinois-counties.csv",
+  previousYear
+)
+
+previousYearVariableList <- unlist(
+  acsVariableTibble$acs_variables_2017
+) %>%
+  stringr::str_trunc(10, side = "right", ellipsis = "") %>%
+  append(
+    unlist(acsVariableTibble$denominator) %>%
+      stringr::str_trunc(10, side = "right", ellipsis = "")
+  )
+
+
+illinoisCountyPreviousYearDataFile <- paste(
+  outputDataDirectory,
+  illinoisCountyPreviousYearDataFileName,
+  sep = "/"
+)
+
+illinoisCountyPreviousYearRawData <- tryCatch(
+  {
+    readr::read_csv(
+      illinoisCountyPreviousYearDataFile,
+      col_types = columnTypeList
+    )
+  },
+  error = function(err) {
+    censusTable <- censusapi::getCensus(
+      name = "dec/sf1",
+      vintage = censusYear,
+      vars = c("P002001", "P002003"),
+      region = "county:*",
+      regionin = "state:17"
+    ) %>%
+      dplyr::mutate(
+        GEOID = paste0(state, county, sep = ""),
+        population2010 = P002001,
+        percentUrban2010 = P002003/P002001
+      ) %>%
+      dplyr::select(-c(state, county, P002001, P002003)) %>%
+      tibble::as_tibble()
+    
+    illinoisCountyPreviousYearRawData <- tidycensus::get_acs(
+      geography = "county",
+      variable = previousYearVariableList,
+      state = "17",
+      year = previousYear,
+      survey = acsSurvey,
+      output = "wide"
+    ) %>%
+      dplyr::left_join(censusTable) %T>%
+      readr::write_csv(illinoisCountyPreviousYearDataFile)
   }
 )
   
@@ -80,7 +139,7 @@ illinoisTractDataFile <- paste(
   sep = "/"
 )
 
-illinoisTractData <- tryCatch(
+illinoisTractRawData <- tryCatch(
   {
     readr::read_csv(
       illinoisTractDataFile,
@@ -120,8 +179,8 @@ illinoisTractData <- tryCatch(
       dplyr::distinct(value) %>%
       tidyr::spread(variable, value)
     
-    illinoisTractData <- dplyr::right_join(censusTable, acsTable)
-    readr::write_csv(illinoisTractData, illinoisTractDataFile)
+    illinoisTractRawData <- dplyr::right_join(censusTable, acsTable)
+    readr::write_csv(illinoisTractRawData, illinoisTractDataFile)
   }
 )
 
@@ -137,7 +196,7 @@ region6BlockGroupDataFile <- paste(
   sep = "/"
 )
 
-region6BlockGroupData <- tryCatch(
+region6BlockGroupRawData <- tryCatch(
   {
     readr::read_csv(
       region6BlockGroupDataFile,
@@ -168,8 +227,8 @@ region6BlockGroupData <- tryCatch(
     # the script hangs on the above line if we don't limit ourselves to just
     # region 6 block groups--probably an issue with coalesceByColumn function
     
-    region6BlockGroupData <- acsTable
-    readr::write_csv(region6BlockGroupData, region6BlockGroupDataFile)
+    region6BlockGroupRawData <- acsTable
+    readr::write_csv(region6BlockGroupRawData, region6BlockGroupDataFile)
   }
 )
 

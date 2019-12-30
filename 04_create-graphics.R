@@ -5,8 +5,6 @@ getACSYearsLabel <- function(acsYear) {
   paste("Data Source: Census ACS 5-year estimates,", acsYear - 4, "-", acsYear)
 }
 
-illinoisSummary <- drop_na(illinoisTractData) %>%
-  subset(per_urban <= 0.5)
 # make some graphs --------------------------------------------------------
 ggplot(data = blockGroupData) +
   geom_jitter(mapping = aes(per_vet, den_pop))
