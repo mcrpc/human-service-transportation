@@ -1,0 +1,194 @@
+---
+output: 
+  pdf_document:
+    toc: true
+    number_sections: true
+title: "HSTP Analysis"
+author: "Tim Riley"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+header-includes:
+  \usepackage[default,oldstyle,scale=0.95]{opensans}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE
+)
+#source(here::here("00_initialize.R"))
+```
+
+\pagebreak
+
+# Introduction
+
+This document presents findings from the analysis of newly-released ACS data for the HSTP update. All maps are saved in the /map subfolder of this repository.
+
+# Topics
+
+Tracts with more than 50% urban population in the 2010 census are excluded,
+
+## Population Characteristics
+
+This section covers general characteristics of the population in the rural areas of Region 6.
+
+### Population Density
+
+Mostly low density areas with a few small urban centers.
+
+```{r population density map}
+Region6TractPopulationDensityMap
+```
+
+\pagebreak
+
+## Age Groups
+
+This section breaks down the population by age groups.
+
+### Under 18
+
+Calculated using detailed table B01001, "SEX BY AGE".
+
+The average value for Illinois counties in `r acsYear` was `r percent(mean(illinoisCountyData$per_blw18))`.
+
+Areas of McLean and Livingston counties have very high numbers of minors as proportion of the population.
+
+```{r percent below 18 map}
+Region6TractPercentBelow18Map
+```
+
+### Between 18 and 65
+
+Calculated using detailed table B01001, "SEX BY AGE".
+
+The average value for Illinois counties in `r acsYear` was `r percent(mean(illinoisCountyData$per_18to65))`.
+
+```{r percent 18 to 65 map}
+Region6TractPercent18to65Map
+```
+
+### Over 65
+
+Calculated using detailed table B01001, "SEX BY AGE".
+
+The average value for Illinois counties in `r acsYear` was `r percent(mean(illinoisCountyData$per_ovr65))`.
+
+Possible significant correlation between lower population density and elderly population among Illinois Counties in general. This seems to hold in Region 6, where 20% or more of the population is over 65 in `r length(with(tractLayer, which(per_ovr65 > .2)))` of `r length(tractLayer)` tracts.
+
+```{r percent over 65 map}
+Region6TractPercentOver65Map
+```
+
+\pagebreak
+
+## Disability
+
+### Percent of adults with any disability
+
+Calculated using detailed table B18101, "SEX BY AGE BY DISABILITY STATUS".
+
+The average value for Illinois counties in `r acsYear` was `r percent(mean(illinoisCountyData$per_dsblty))`.
+
+```{r disability map}
+Region6TractPercentDisabilityMap
+```
+
+\pagebreak
+
+## Veterans
+
+### Veterans as percent of all adults
+
+Calculated using detailed table B21001, "SEX BY AGE BY VETERAN STATUS FOR THE CIVILIAN POPULATION 18 YEARS AND OVER".
+
+The average value for Illinois counties in `r acsYear` was `r percent(mean(illinoisCountyData$per_vet))`.
+
+Rural areas of Livingston and Iroquois counties have proportionally high numbers of Veterans, and are somewhat far removed from the VA facilities in Kankakee and Bloomington.
+
+```{r veterans map}
+Region6TractPercentVeteranMap
+```
+
+\pagebreak
+
+## Poverty
+
+### Poverty Rate
+
+Calculated using detailed table B17020, "POVERTY STATUS IN THE PAST 12 MONTHS BY AGE".
+
+The average value for Illinois counties in `r acsYear` was `r percent(mean(illinoisCountyData$per_blwpov))`.
+
+Poverty in Region 6 is most highly concentrated in the small urban centers. Also Hopkins Park in Kankakee, historically an economically depressed area.
+
+```{r poverty rate map}
+Region6TractPercentBelowPovertyMap
+```
+
+### Households with elderly members on SNAP
+
+Calculated using detailed table B22001, "RECEIPT OF FOOD STAMPS/SNAP IN THE PAST 12 MONTHS BY PRESENCE OF PEOPLE 60 YEARS AND OVER FOR HOUSEHOLDS".
+
+The average value for Illinois counties in `r acsYear` was `r percent(mean(illinoisCountyData$per_hhSo60))`.
+
+Hopkins Park and parts of Pontiac.
+
+```{r households on SNAP with persons over 60 map}
+Region6TractPercentHouseholdSNAPOver60Map
+```
+
+\pagebreak
+
+## Income
+
+### Median Household Income
+
+Calculated using detailed table B22008, "MEDIAN HOUSEHOLD INCOME IN THE PAST 12 MONTHS (IN 2018 INFLATION-ADJUSTED DOLLARS) BY RECEIPT OF FOOD STAMPS/SNAP IN THE PAST 12 MONTHS".
+
+The average value for Illinois counties in `r acsYear` was `r percent(mean(illinoisCountyData$inc_medhh))`.
+
+
+```{r median household income map}
+Region6TractMedianHouseholdIncomeMap
+```
+
+### Income Per Capita
+
+Calculated using detailed table B19301, "PER CAPITA INCOME IN THE PAST 12 MONTHS (IN 2018 INFLATION-ADJUSTED DOLLARS)".
+
+The average value for Illinois counties in `r acsYear` was `r percent(mean(illinoisCountyData$inc_percap))`.
+
+Similar distribution to median household income
+
+```{r per capita income map}
+Region6TractIncomePerCapitaMap
+```
+
+### GINI
+
+Calculated using detailed table B19083, "GINI INDEX OF INCOME INEQUALITY".
+
+The average value for Illinois counties in `r acsYear` was `r percent(mean(illinoisCountyData$gini))`.
+
+Possible relationship to poverty
+
+```{r gini coefficient map}
+Region6TractGINICoefficientMap
+```
+
+\pagebreak
+
+## Transportation
+
+### Percent of Households with No Vehicle Available
+
+Calculated using detailed table B08141, "MEANS OF TRANSPORTATION TO WORK BY VEHICLES AVAILABLE".
+
+The average value for Illinois counties in `r acsYear` was `r percent(mean(illinoisCountyData$per_nocars))`.
+
+Eastern Kankakee County, Pontiac in Livingston County, and Le Roy in McLean County stand out.
+
+```{r percent no vehicle map}
+Region6TractPercentNoCarMap
+```

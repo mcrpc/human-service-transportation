@@ -89,7 +89,7 @@ getHSTPMap <- function(
     tmap::tm_borders(col = "black", lwd = 2) +
     tmap::tm_text(
       text = "NAME",
-      size = 1,
+      size = .9,
       shadow = T
     ) +
     tmap::tm_layout(
@@ -103,9 +103,10 @@ getHSTPMap <- function(
       legend.format = legendFormat,
       frame.lwd = 2,
       outer.bg.color = "#00000000",
+      asp = 4/3
     ) +
     tmap::tm_scale_bar(
-      width = 0.25,
+      width = 0.2,
       text.size = .5
     ) +
     tmap::tm_credits(
@@ -142,10 +143,10 @@ mapTitles <- c(
   PercentOver65MapTitle <- "Percent of Population Over 65",
   PercentVeteranMapTitle <- "Veterans as Percent of Adults",
   PercentDisabilityMapTitle <- "Percent of Population with a Disability",
-  PercentBelowPovertyMapTitle <- "Percent of Population with Household Income below Poverty",
-  PercentNoCarMapTitle <- "Percent of Population with Zero Household Vehicles",
-  PercentNoDiplomaMapTitle <- "Percent of Adults without High School Diploma",
-  PercentHouseholdSNAPOver60MapTitle <- "Percent of Households receiving SNAP with someone over 60",
+  PercentBelowPovertyMapTitle <- "Percent of Population with Household Income below Poverty", # too long
+  PercentNoCarMapTitle <- "Percent of Population with Zero Household Vehicles", # too long
+  PercentNoDiplomaMapTitle <- "Percent of Adults without High School Diploma", # too long
+  PercentHouseholdSNAPOver60MapTitle <- "Percent of Households receiving SNAP with someone over 60",# too long
   PopulationDensityMapTitle <- "Population per Square Mile",
   PopulationGrowthMapTitle <- "Population Change, 2017-2018"
 )
