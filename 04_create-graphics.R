@@ -146,7 +146,8 @@ mapTitles <- c(
   PercentNoCarMapTitle <- "Percent of Population with Zero Household Vehicles",
   PercentNoDiplomaMapTitle <- "Percent of Adults without High School Diploma",
   PercentHouseholdSNAPOver60MapTitle <- "Percent of Households receiving SNAP with someone over 60",
-  PopulationDensityMapTitle <- "Population per Square Mile"
+  PopulationDensityMapTitle <- "Population per Square Mile",
+  PopulationGrowthMapTitle <- "Population Change, 2017-2018"
 )
 mapVariablePalettes <- c(
   IncomePerCapitaPalette <- "Blues",
@@ -161,7 +162,8 @@ mapVariablePalettes <- c(
   PercentNoCarPalette <- "YlOrRd",
   PercentNoDiplomaPalette <- "YlOrRd",
   PercentHouseholdSNAPOver60Palette <- "YlOrRd",
-  PopulationDensityPalette <- "YlGn"
+  PopulationDensityPalette <- "YlGn",
+  PopulationGrowthPalette <- "RdBu"
 )
 
 # county maps -------------------------------------------------------------
@@ -385,6 +387,25 @@ suppressWarnings(
       filename = paste(
         outputMapDirectory,
         addACSYearsToFilename("Region-6-Tract_Population-Density.pdf", acsYear),
+        sep = "/"
+      )
+    )
+)
+# population growth of tracts
+suppressWarnings(
+  Region6TractPopulationGrowthMap <- getHSTPMap(
+    sf = tractLayer,
+    variable = "growth_pop",
+    title = PopulationGrowthMapTitle,
+    vals = "percent",
+    palette = PopulationGrowthPalette,
+    n = 5,
+    classificationStyle = "jenks"
+  ) %T>%
+    tmap::tmap_save(
+      filename = paste(
+        outputMapDirectory,
+        addACSYearsToFilename("Region-6-Tract_Population-Growth.pdf", acsYear),
         sep = "/"
       )
     )

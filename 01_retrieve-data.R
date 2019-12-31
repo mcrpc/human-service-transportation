@@ -184,6 +184,54 @@ illinoisTractRawData <- tryCatch(
   }
 )
 
+# illinois tract previous year data
+illinoisTractPreviousYearDataFileName <- addACSYearsToFilename(
+  "illinois-tracts.csv",
+  previousYear
+)
+
+illinoisTractPreviousYearDataFile <- paste(
+  outputDataDirectory,
+  illinoisTractPreviousYearDataFileName,
+  sep = "/"
+)
+
+illinoisTractPreviousYearRawData <- tryCatch(
+  {
+    readr::read_csv(
+      illinoisTractPreviousYearDataFile,
+      col_types = columnTypeList
+    )
+  },
+  error = function(err) {
+    censusTable <- censusapi::getCensus(
+      name = "dec/sf1",
+      vintage = censusYear,
+      vars = c("P002001", "P002003"),
+      region = "tract:*",
+      regionin = "state:17"
+    ) %>%
+      dplyr::mutate(
+        GEOID = paste0(state, county, tract, sep = ""),
+        population2010 = P002001,
+        percentUrban2010 = P002003/P002001
+      ) %>%
+      dplyr::select(-c(state, county, P002001, P002003)) %>%
+      tibble::as_tibble()
+    
+    illinoisTractPreviousYearRawData <- tidycensus::get_acs(
+      geography = "tract",
+      variable = previousYearVariableList,
+      state = "17",
+      year = previousYear,
+      survey = acsSurvey,
+      output = "wide"
+    ) %>%
+      dplyr::right_join(censusTable, .) %T>%
+      readr::write_csv(illinoisTractPreviousYearDataFile)
+  }
+)
+
 # region 6 block group data
 region6BlockGroupDataFileName <- addACSYearsToFilename(
   "region-6-block-groups.csv",

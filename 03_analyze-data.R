@@ -34,7 +34,8 @@ tractLayer <- tigris::tracts(
   dplyr::select(-c(AFFGEOID, LSAD, ALAND, AWATER, contains("dnm"))) %>%
   dplyr::mutate(den_pop = est_pop / area_sq_mi) %>%
   subset(per_urban <= 0.5) %>%
-  sf::st_transform(crs = crs)
+  sf::st_transform(crs = crs) %>%
+  dplyr::left_join(select(illinoisTractPercentChangeData, c(GEOID, growth_pop)))
 
 blockGroupLayer <- tigris::block_groups(
   state = "17",
@@ -61,15 +62,13 @@ blockGroupData <- blockGroupLayer[drop = TRUE] %>%
   dplyr::select(-c(geometry)) %>%
   as_tibble
 
-# illinoisTractSummary <- illinoisTractData %>%
-#   select(c(gini, contains("inc"), contains("per"))) %>%
-#   subset(per_urban <= 0.5) %>%
-#   select(-per_urban) %>%
-#   dfSummary()
-# illinoisTractSummary
+selection <- paste0("17", region6CountyList)
+subset(illinoisCountyPercentChangeData, GEOID %in% selection | NAME == "mean")
+# nothing of note, really. population of iroquois and livingston counties declined by 1%
 
-# attempt to set up a trend analysis
-region6CountyList_5digit <- paste0("17", region6CountyList)
-
-
-
+subset(
+  illinoisTractPercentChangeData,
+  str_trunc(GEOID, 5, "right", ellipsis = "") %in% selection
+) %>%
+  select(GEOID, growth_pop) %>%
+  summarize(mean(growth_pop))
