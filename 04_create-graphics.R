@@ -6,27 +6,23 @@ getACSYearsLabel <- function(acsYear) {
 }
 
 # make some graphs --------------------------------------------------------
-ggplot(data = blockGroupData) +
-  geom_jitter(mapping = aes(per_vet, den_pop))
+drawGraph <- function(dataset, var1, var2) {
+  linearModel <- lm(
+    paste(var1, "~", var2),
+    data = dataset
+  )
+  plot <- ggplot(data = dataset, aes_string(x = var1, y = var2)) +
+    geom_point() +
+    stat_smooth(method = "lm", col = "red")
+    # geom_line(mapping = aes(linearModel))
+  print(summary(linearModel))
+  return(plot)
+}
 
-ggplot(data = tractData, mapping = aes(per_blwpov)) +
-  geom_histogram()
+drawGraph(dataset = tractData, var1 = "per_dsblty", var2 = "per_blwpov") # sig
+drawGraph(dataset = tractData, var1 = "gini", var2 = "per_blwpov") # sig
+drawGraph(dataset = tractData, var1 = "growth_pop", var2 = "per_dsblty")
 
-# poverty
-ggplot(data = tractData, mapping = aes(per_blwpov)) +
-  geom_histogram()
-
-poverty <- tractLayer$per_blwpov
-povertyOutliers <- subset(tractLayer, per_blwpov > (mean(poverty) + sd(poverty)))
-
-tmap::tmap_mode("view")
-tm_shape(tractLayer) +
-  tm_borders("grey") +
-  tm_shape(povertyOutliers) +
-  tm_fill("den_pop", alpha = 0.8) +
-  tm_shape(cityLayer[tractLayer,]) +
-  tm_text("NAME", size = 0.6)
-  
 
 # HSTP map function -------------------------------------------------------
 getHSTPMap <- function(
