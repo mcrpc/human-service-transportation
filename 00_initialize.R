@@ -66,9 +66,11 @@ acsVariableTibble <- tibble::tribble(
   "est_nodipl", "Population without High School Diploma", est_nodipl <- paste0("B15003_0", stringr::str_pad(c(2:16), 2, "left", pad = "0"), "E"), dnm_nodipl <- "B15003_001E",
   "inc_percap", "Per Capita Income", inc_percap <- "B19301_001E", NULL,
   "inc_medhh", "Median Household Income", inc_medhh <- "B22008_001E", NULL,
-  "est_hhSo60", "Population in households receiving SNAP with at least one person over 60", est_hhSo60 <- "B22001_003E", dnm_hhSo60 <- "B22001_001E"
+  "est_hhSo60", "Population in households receiving SNAP with at least one person over 60", est_hhSo60 <- "B22001_003E", dnm_hhSo60 <- "B22001_001E",
+  "est_alttrn", "Alternate Transportation Users", est_alttrn <- c("B08119_019E", "B08119_028E", "B08119_037E", "B08119_046E", "B08119_055E"), dnm_alttrn <- "B08119_001",
+  "est_hhsnap", "Households receiving SNAP", est_hhsnap <- "B22001_002E", dnm_hhsnap <- dnm_hhSo60,
+  "est_vahc", "VA Health Care Users", est_vahc <- c("C27009_004", "C27009_007", "C27009_010", "C27009_014", "C27009_017", "C27009_020"), dnm_vahc <- "C27009_001"
 )
-
 
 # define global functions -------------------------------------------------
 getArea <- function(sf) {
