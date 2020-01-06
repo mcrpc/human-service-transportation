@@ -74,7 +74,7 @@ Calculated using detailed table B01001, "SEX BY AGE".
 
 The average value for Illinois counties in `r acsYear` was `r percent(mean(illinoisCountyData$per_ovr65))`.
 
-Possible significant correlation between lower population density and elderly population among Illinois Counties in general. This seems to hold in Region 6, where 20% or more of the population is over 65 in `r length(with(tractLayer, which(per_ovr65 > .2)))` of `r length(tractLayer)` tracts.
+Significant correlation between lower population density and higher population over 65 among rural Illinois tracts. This seems to hold in Region 6, where 20% or more of the population is over 65 in `r length(with(tractLayer, which(per_ovr65 > .2)))` of `r length(tractLayer)` tracts.
 
 ```{r percent over 65 map}
 Region6TractPercentOver65Map
@@ -89,6 +89,8 @@ Region6TractPercentOver65Map
 Calculated using detailed table B18101, "SEX BY AGE BY DISABILITY STATUS".
 
 The average value for Illinois counties in `r acsYear` was `r percent(mean(illinoisCountyData$per_dsblty))`.
+
+Percent of population with a disability is correlated to poverty rate in Illinois tracts.
 
 ```{r disability map}
 Region6TractPercentDisabilityMap
@@ -120,7 +122,7 @@ Calculated using detailed table B17020, "POVERTY STATUS IN THE PAST 12 MONTHS BY
 
 The average value for Illinois counties in `r acsYear` was `r percent(mean(illinoisCountyData$per_blwpov))`.
 
-Poverty in Region 6 is most highly concentrated in the small urban centers. Also Hopkins Park in Kankakee, historically an economically depressed area.
+Poverty is somewhat correlated with population density in rural Illinois tracts. In Region 6, poverty appears to be concentrated around the small urban centers, also Hopkins Park in Kankakee, historically an economically depressed area.
 
 ```{r poverty rate map}
 Region6TractPercentBelowPovertyMap
@@ -132,7 +134,7 @@ Calculated using detailed table B22001, "RECEIPT OF FOOD STAMPS/SNAP IN THE PAST
 
 The average value for Illinois counties in `r acsYear` was `r percent(mean(illinoisCountyData$per_hhSo60))`.
 
-Hopkins Park and parts of Pontiac.
+Concentrated in Hopkins Park, Kankakee and parts of Pontiac.
 
 ```{r households on SNAP with persons over 60 map}
 Region6TractPercentHouseholdSNAPOver60Map
