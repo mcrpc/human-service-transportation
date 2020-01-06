@@ -280,15 +280,35 @@ region6BlockGroupRawData <- tryCatch(
   }
 )
 
-# LEHD data ---------------------------------------------------------------
-# horribly outdated, all of this needs to be reworked - TRRILEY, 12/12/19
-# ctyOD <- grab_lodes(state = "il", year = 2017:2010, lodes_type = "od", job_type = "JT01", segment = "S000", state_part = "main", agg_geo = "county"))
-# ctyOD <- subset(ctyOD, str_trunc(w_county, 3, "left", ellipsis = "") %in% region6CountyList | str_trunc(h_county, 3, "left", ellipsis = "") %in% region6CountyList, select = 1:5)
-# readr::write_csv(ctyOD, paste(outputDataDirectory, "ctyOD.csv", sep = "/"))
-# ctyODaux <- grab_lodes(state = c("il", "in", "ia", "mn", "wi", "mo", "mi"), year = 2017:2007, lodes_type = "od", job_type = "JT01", segment = "S000", state_part = "aux", agg_geo = "county") %>%
-#   subset(w_county %in% paste("17", region6CountyList, sep = "") | h_county %in% paste("17", region6CountyList, sep = ""), select = 1:5) %T>%
-#   readr::write_csv(paste(outputDataDirectory, "ctyODaux.csv", sep = "/"))
 
-# ODCountyTbl <- read_csv(paste(outputDataDirectory, "ctyOD.csv", sep = "/"), col_types = "cccci") %>%
-#   bind_rows(read_csv(paste(outputDataDirectory, "ctyODaux.csv", sep = "/"), col_types = "cccci"))
-# ctyNames <- read_csv("ctyNames.csv")
+# county time series data -------------------------------------------------
+acsYearList <- lst(2014, 2015, 2016, 2017, 2018)
+timeSeriesVariableVector <- c(
+  est_blwpov,
+  dnm_blwpov,
+  est_nocars,
+  dnm_nocars,
+  est_ovr65,
+  dnm_ovr65,
+  inc_percap,
+  inc_medhh,
+  gini
+) %>%
+  stringr::str_trunc(10, side = "right", ellipsis = "")
+
+timeSeriesData <- map_dfr(
+  acsYearList,
+  ~ get_acs(
+    geography = "county",
+    variable = timeSeriesVariableVector,
+    state = "17",
+    year = .x,
+    survey = acsSurvey,
+    output = "tidy"
+  ),
+  .id = "year"
+)
+
+
+
+
