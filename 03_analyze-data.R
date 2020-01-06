@@ -25,7 +25,6 @@ region6CountyLayer <- subset(
 
 tractLayer <- tigris::tracts(
   state = "17",
-  county = region6CountyList,
   cb = TRUE,
   class = "sf"
 ) %>%
@@ -35,7 +34,9 @@ tractLayer <- tigris::tracts(
   dplyr::mutate(den_pop = est_pop / area_sq_mi) %>%
   subset(per_urban <= 0.5) %>%
   sf::st_transform(crs = crs) %>%
-  dplyr::left_join(select(illinoisTractPercentChangeData, c(GEOID, growth_pop)))
+  dplyr::left_join(select(illinoisTractPercentChangeData, c(GEOID, growth_pop))) %>%
+  dplyr::select(-NAME.x) %>%
+  dplyr::rename(NAME = NAME.y)
 
 blockGroupLayer <- tigris::block_groups(
   state = "17",
