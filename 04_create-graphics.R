@@ -5,7 +5,36 @@ getACSYearsLabel <- function(acsYear) {
   paste("Data Source: Census ACS 5-year estimates,", acsYear - 4, "-", acsYear)
 }
 
-# make some graphs --------------------------------------------------------
+
+# time series graphs ------------------------------------------------------
+drawTimeSeriesGraph <- function(dataset, var1, var2, category) {
+  plot <- ggplot(data = dataset, aes_string(x = var1, y = var2, color = category)) +
+    geom_point() + geom_line()
+  return(plot)
+}
+
+graphData <- subset(
+  illinoisTractTimeSeriesData,
+  GEOID %in% ruralTractVector
+) %>%
+  group_by(str_trunc(GEOID, 5, "left", ellipsis = ""))
+
+graphData <- subset(
+  illinoisTractTimeSeriesData,
+  str_trunc(GEOID, 3, "left", ellipsis = "") %in% region6CountyFIPS3
+) %>%
+  mutate(variable = str_pad(variable, 11, "right", "E")) %>%
+  mutate(NAME = word(NAME)) %>%
+  mutate(year = as.integer(year))
+
+srs_pop <- subset(graphData, variable == est_pop) %>%
+  group_by(NAME)
+
+drawTimeSeriesGraph(srs_pop, "year", "estimate", "NAME")
+
+
+
+# other graphs ------------------------------------------------------------
 drawGraph <- function(dataset, var1, var2) {
   linearModel <- lm(
     paste(var1, "~", var2),
@@ -19,7 +48,7 @@ drawGraph <- function(dataset, var1, var2) {
   return(plot)
 }
 
-region6TractData <- filter(tractData, COUNTYFP %in% region6CountyList)
+region6TractData <- filter(tractData, COUNTYFP %in% region6CountyFIPS3)
 
 drawGraph(dataset = tractData, var1 = "per_dsblty", var2 = "per_blwpov") # sig
 drawGraph(dataset = tractData, var1 = "gini", var2 = "per_blwpov") # sig
@@ -27,26 +56,6 @@ drawGraph(dataset = tractData, var1 = "growth_pop", var2 = "per_dsblty")
 drawGraph(dataset = tractData, var1 = "per_blwpov", var2 = "per_dsblty")
 drawGraph(dataset = tractData, var1 = "den_pop", var2 = "per_ovr65")
 drawGraph(dataset = tractData, var1 = "per_blwpov", var2 = "den_pop")
-
-drawTimeSeriesGraph <- function(dataset, var1, var2, category) {
-  plot <- ggplot(data = dataset, aes_string(x = var1, y = var2, color = category)) +
-    geom_point() + geom_line()
-  return(plot)
-}
-
-graphData <- subset(
-  timeSeriesData,
-  str_trunc(GEOID, 3, "left", ellipsis = "") %in% region6CountyList
-) %>%
-  mutate(variable = str_pad(variable, 11, "right", "E")) %>%
-  mutate(NAME = word(NAME)) %>%
-  mutate(year = as.integer(year))
-
-srs_pop <- subset(graphData, variable == est_pop) %>%
-  group_by(NAME)
-
-drawTimeSeriesGraph(srs_pop, "year", "estimate", "NAME")
-
 # HSTP map function -------------------------------------------------------
 getHSTPMap <- function(
   sf,
