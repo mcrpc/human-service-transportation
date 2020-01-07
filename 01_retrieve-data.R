@@ -1,7 +1,9 @@
 # initialize local variables ----------------------------------------------
 acsSurvey <- "acs5"
 censusYear <- 2010
-columnTypeList <- readr::cols(GEOID = col_character())
+columnTypeList <- readr::cols(
+  GEOID = col_character()
+)
 
 
 # load data ---------------------------------------------------------------
@@ -282,7 +284,15 @@ region6BlockGroupRawData <- tryCatch(
 
 
 # county time series data -------------------------------------------------
-acsYearList <- lst(2014, 2015, 2016, 2017, 2018)
+
+acsYearList <- as.list(c(acsYear - 4:0)) %>%
+  set_names(c(acsYear - 4:0))
+
+timeSeriesColumnTypes <- readr::cols(
+  year = col_integer(),
+  GEOID = col_character()
+)
+
 timeSeriesVariableVector <- c(
   est_blwpov,
   dnm_blwpov,
@@ -296,19 +306,66 @@ timeSeriesVariableVector <- c(
 ) %>%
   stringr::str_trunc(10, side = "right", ellipsis = "")
 
-timeSeriesData <- map_dfr(
-  acsYearList,
-  ~ get_acs(
-    geography = "county",
-    variable = timeSeriesVariableVector,
-    state = "17",
-    year = .x,
-    survey = acsSurvey,
-    output = "tidy"
-  ),
-  .id = "year"
+illinoisCountyTimeSeriesDataFile <- paste(
+  outputDataDirectory,
+  "county-time-series-data.csv",
+  sep = "/"
 )
 
+illinoisCountyTimeSeriesData <- tryCatch(
+  {
+    readr::read_csv(
+      illinoisCountyTimeSeriesDataFile,
+      col_types = timeSeriesColumnTypes
+    )
+  },
+  error = function(err) {
+    illinoisCountyTimeSeriesData <- map_dfr(
+      acsYearList,
+      ~ get_acs(
+        geography = "county",
+        variable = timeSeriesVariableVector,
+        state = "17",
+        year = .x,
+        survey = acsSurvey,
+        output = "tidy"
+      ),
+      .id = "year"
+    ) %>%
+      mutate(year = as_integer(year)) %T>%
+      readr::write_csv(illinoisCountyTimeSeriesDataFile)
+  }
+)
 
+illinoisTractTimeSeriesDataFile <- paste(
+  outputDataDirectory,
+  "tract-time-series-data.csv",
+  sep = "/"
+)
+
+illinoisTractTimeSeriesData <- tryCatch(
+  {
+    readr::read_csv(
+      illinoisTractTimeSeriesDataFile,
+      col_types = timeSeriesColumnTypes
+    )
+  },
+  error = function(err) {
+    illinoisTractTimeSeriesData <- map_dfr(
+      acsYearList,
+      ~ get_acs(
+        geography = "tract",
+        variable = timeSeriesVariableVector,
+        state = "17",
+        year = .x,
+        survey = acsSurvey,
+        output = "tidy"
+      ),
+      .id = "year"
+    ) %>%
+      mutate(year = as_integer(year)) %T>%
+      readr::write_csv(illinoisTractTimeSeriesDataFile)
+  }
+)
 
 
