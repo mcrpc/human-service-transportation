@@ -16,7 +16,7 @@ countyLayer <- tigris::counties(c("17", "18"), cb = TRUE, class = "sf") %>%
 
 region6CountyLayer <- subset(
   countyLayer,
-  STATEFP == "17" & COUNTYFP %in% region6CountyList
+  STATEFP == "17" & COUNTYFP %in% region6CountyFIPS3
 ) %>%
   dplyr::left_join(
     select(illinoisCountyData, -NAME),
@@ -38,9 +38,11 @@ tractLayer <- tigris::tracts(
   dplyr::select(-NAME.x) %>%
   dplyr::rename(NAME = NAME.y)
 
+ruralTractVector <- tractLayer$GEOID
+
 blockGroupLayer <- tigris::block_groups(
   state = "17",
-  county = region6CountyList,
+  county = region6CountyFIPS3,
   cb = TRUE,
   class = "sf"
 ) %>%
@@ -63,7 +65,7 @@ blockGroupData <- blockGroupLayer[drop = TRUE] %>%
   dplyr::select(-c(geometry)) %>%
   as_tibble
 
-selection <- paste0("17", region6CountyList)
+selection <- paste0("17", region6CountyFIPS3)
 subset(illinoisCountyPercentChangeData, GEOID %in% selection | NAME == "mean")
 # nothing of note, really. population of iroquois and livingston counties declined by 1%
 

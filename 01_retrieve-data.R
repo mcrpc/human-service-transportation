@@ -170,7 +170,7 @@ illinoisTractRawData <- tryCatch(
         geography = "tract",
         table = .,
         state = "17",
-        #county = region6CountyList,
+        #county = region6CountyFIPS3,
         year = acsYear,
         survey = acsSurvey,
         output = "wide"
@@ -266,7 +266,7 @@ region6BlockGroupRawData <- tryCatch(
         geography = "block group",
         table = .,
         state = "17",
-        county = region6CountyList,
+        county = region6CountyFIPS3,
         year = acsYear,
         survey = acsSurvey,
         output = "wide"
@@ -367,5 +367,10 @@ illinoisTractTimeSeriesData <- tryCatch(
       readr::write_csv(illinoisTractTimeSeriesDataFile)
   }
 )
+
+
+# geographic data ---------------------------------------------------------
+
+
 
 

@@ -47,7 +47,12 @@ censusAPIKey <- "2f44a09c684e6b031d3e76f3655c169c167aeba8"
 Sys.setenv(CENSUS_KEY = censusAPIKey)
 acs2017VariableTable <- tidycensus::load_variables(2017, "acs5", cache = TRUE)
 acs2018VariableTable <- tidycensus::load_variables(2018, "acs5", cache = TRUE)
-region6CountyList <- c("113", "053", "105", "075", "091")
+region6CountyList <- lst(
+  region6CountyNames <- c("McLean", "Ford", "Livingston", "Iroquois", "Kankakee"),
+  region6CountyFIPS5 <- paste0("17", c("113", "053", "105", "075", "091")),
+  region6CountyFIPS3 <- c("113", "053", "105", "075", "091")
+) %>%
+  set_names("region6CountyNames", "region6CountyFIPS5", "region6CountyFIPS3")
 acsYear <- 2018                                              # !!CHANGE THIS WHEN UPDATED DATA IS RELEASED!!
 
 # create tibble to store relationship between desired variable's name,
