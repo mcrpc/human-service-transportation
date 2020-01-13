@@ -17,21 +17,61 @@ graphData <- subset(
   illinoisTractTimeSeriesData,
   GEOID %in% ruralTractVector
 ) %>%
-  group_by(str_trunc(GEOID, 5, "left", ellipsis = ""))
+  mutate(
+    state_FIPS = str_trunc(GEOID, 2, "right", ellipsis = ""),
+    county_FIPS = str_trunc(GEOID, 5, "right", ellipsis = ""),
+    variable = paste0(variable, "E"),
+    county_name = word(NAME, 4)
+  ) %>%
+  group_by(
+    region6 = county_FIPS %in% region6CountyVector,
+    year,
+    variable
+  ) %>%
+  select(
+    c(
+      region6,
+      variable,
+      year,
+      state_FIPS,
+      county_FIPS,
+      GEOID,
+      county_name,
+      estimate,
+      moe
+    )
+  )
 
-graphData <- subset(
-  illinoisTractTimeSeriesData,
-  str_trunc(GEOID, 3, "left", ellipsis = "") %in% region6CountyFIPS3
-) %>%
-  mutate(variable = str_pad(variable, 11, "right", "E")) %>%
-  mutate(NAME = word(NAME)) %>%
-  mutate(year = as.integer(year))
+region6GraphData <- subset(graphData, region6 == TRUE) %>%
+  mutate(
+    county_name = if_else(
+      county_name %in% c("McLean", "Kankakee"),
+      paste("Rural", county_name),
+      county_name
+    )
+  ) %>%
+  group_by(county_name, year, variable) %>%
+  select(variable, year, county_name, estimate, moe)
 
-srs_pop <- subset(graphData, variable == est_pop) %>%
-  group_by(NAME)
+srs_pop <- subset(region6GraphData, variable == est_pop) %>%
+  summarize(
+    estimate = sum(estimate),
+    moe = moe_sum(moe, estimate)
+  )
 
-drawTimeSeriesGraph(srs_pop, "year", "estimate", "NAME")
+srs_percap <- subset(region6GraphData, variable == inc_percap) %>%
+  summarize(
+    estimate = mean(estimate)
+  )
 
+srs_medhh <- subset(region6GraphData, variable == inc_medhh) %>%
+  summarize(
+    estimate = mean(estimate)
+  )
+
+drawTimeSeriesGraph(srs_pop, "year", "estimate", "county_name")
+drawTimeSeriesGraph(srs_percap, "year", "estimate", "county_name")
+drawTimeSeriesGraph(srs_medhh, "year", "estimate", "county_name")
 
 
 # other graphs ------------------------------------------------------------
