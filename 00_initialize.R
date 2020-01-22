@@ -71,9 +71,10 @@ acsVariableTibble <- tibble::tribble(
   "inc_percap", "Per Capita Income", inc_percap <- "B19301_001E", NULL,
   "inc_medhh", "Median Household Income", inc_medhh <- "B22008_001E", NULL,
   "est_hhSo60", "Population in households receiving SNAP with at least one person over 60", est_hhSo60 <- "B22001_003E", dnm_hhSo60 <- "B22001_001E",
-  "est_alttrn", "Alternate Transportation Users", est_alttrn <- c("B08119_019E", "B08119_028E", "B08119_037E", "B08119_046E", "B08119_055E"), dnm_alttrn <- "B08119_001",
+  "est_alttrn", "Alternate Transportation Users", est_alttrn <- c("B08119_019E", "B08119_028E", "B08119_037E", "B08119_046E", "B08119_055E"), dnm_alttrn <- "B08119_001E",
   "est_hhsnap", "Households receiving SNAP", est_hhsnap <- "B22001_002E", dnm_hhsnap <- dnm_hhSo60,
-  "est_vahc", "VA Health Care Users", est_vahc <- c("C27009_004", "C27009_007", "C27009_010", "C27009_014", "C27009_017", "C27009_020"), dnm_vahc <- "C27009_001"
+  "est_vahc", "VA Health Care Users", est_vahc <- c("C27009_004E", "C27009_007E", "C27009_010E", "C27009_014E", "C27009_017E", "C27009_020E"), dnm_vahc <- "C27009_001E",
+  "est_veto55", "Veterans 55 years and over", est_veto55 <- c("B21001_014E", "B21001_017E", "B21001_020E", "B21001_032E", "B21001_035E", "B21001_038E"), dnm_veto55 <- "B21001_002E"
 )
 
 # define global functions -------------------------------------------------
