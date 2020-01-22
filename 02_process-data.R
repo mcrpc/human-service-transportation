@@ -20,6 +20,7 @@ transmuteDataTables <- function(dataTibble) {
       est_18to65 = rowSums(.[names(.) %in% est_18to65]),
       est_ovr65 = rowSums(.[names(.) %in% est_ovr65]),
       est_vet = rowSums(.[names(.) %in% est_vet]),
+      est_veto55 = rowSums(.[names(.) %in% est_veto55]),
       est_dsblty = rowSums(.[names(.) %in% est_dsblty]),
       est_blwpov = rowSums(.[names(.) %in% est_blwpov]),
       est_nocars = rowSums(.[names(.) %in% est_nocars]),
@@ -28,24 +29,29 @@ transmuteDataTables <- function(dataTibble) {
       inc_percap = rowSums(.[names(.) %in% inc_percap]),
       inc_medhh = rowSums(.[names(.) %in% inc_medhh]),
       est_hhSo60 = rowSums(.[names(.) %in% est_hhSo60]),
+      est_alttrn = rowSums(.[names(.) %in% est_alttrn]),
       dnm_blw18 = rowSums(.[names(.) %in% dnm_blw18]),
       dnm_18to65 = rowSums(.[names(.) %in% dnm_18to65]),
       dnm_ovr65 = rowSums(.[names(.) %in% dnm_ovr65]),
       dnm_vet = rowSums(.[names(.) %in% dnm_vet]),
+      dnm_veto55 = rowSums(.[names(.) %in% dnm_veto55]),
       dnm_dsblty = rowSums(.[names(.) %in% dnm_dsblty]),
       dnm_blwpov = rowSums(.[names(.) %in% dnm_blwpov]),
       dnm_nocars = rowSums(.[names(.) %in% dnm_nocars]),
       dnm_nodipl = rowSums(.[names(.) %in% dnm_nodipl]),
       dnm_hhSo60 = rowSums(.[names(.) %in% dnm_hhSo60]),
+      dnm_alttrn = rowSums(.[names(.) %in% dnm_alttrn]),
       per_blw18 = est_blw18 / dnm_blw18,
       per_18to65 = est_18to65 / dnm_18to65,
       per_ovr65 = est_ovr65 / dnm_ovr65,
       per_vet = est_vet / dnm_vet,
+      per_veto55 = est_veto55 / dnm_veto55,
       per_dsblty = est_dsblty / dnm_dsblty,
       per_blwpov = est_blwpov / dnm_blwpov,
       per_nocars = est_nocars / dnm_nocars,
       per_nodipl = est_nodipl / dnm_nodipl,
-      per_hhSo60 = est_hhSo60 / dnm_hhSo60
+      per_hhSo60 = est_hhSo60 / dnm_hhSo60,
+      per_alttrn = est_alttrn / dnm_alttrn
     )
 }
 
@@ -116,6 +122,7 @@ region6BlockGroupData <- region6BlockGroupRawData %>%
   getSummaryStatistic(min) %>%
   getSummaryStatistic(max)
 
+# consider removing these percent change data frames in favor of the time series graphs
 illinoisCountyPercentChangeData <- illinoisCountyData %>%
   dplyr::left_join(
     illinoisCountyPreviousYearData,
