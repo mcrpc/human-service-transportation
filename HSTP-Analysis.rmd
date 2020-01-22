@@ -3,7 +3,8 @@ output:
   pdf_document:
     toc: true
     number_sections: true
-title: "HSTP Analysis"
+    fig_caption: false
+title: "Draft Report for HSTP"
 author: "Tim Riley"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 header-includes:
@@ -15,20 +16,22 @@ knitr::opts_chunk$set(
   echo = FALSE,
   message = FALSE
 )
-#source(here::here("00_initialize.R"))
+# source(here::here("00_initialize.R"))
+# for testing, run in console>
+# rmarkdown::render(input = "HSTP-Analysis.rmd", output_file = "HSTP-Analysis.pdf")
 ```
 
 \pagebreak
 
 # Introduction
 
-This document presents findings from the analysis of newly-released ACS data for the HSTP update. All maps are saved in the /map subfolder of this repository.
+This draft document presents findings from the analysis of recently released ACS data for the HSTP update. All maps are saved in the /map subfolder of this repository.
 
-# Topics
+# Population Characteristics
 
-Tracts with more than 50% urban population in the 2010 census are excluded,
+NOTE: Tracts with more than 50% urban population in the 2010 census are excluded.
 
-## Population Characteristics
+## General
 
 This section covers general characteristics of the population in the rural areas of Region 6.
 
@@ -39,8 +42,25 @@ Mostly low density areas with a few small urban centers.
 ```{r population density map}
 Region6TractPopulationDensityMap
 ```
+```{r total population graph}
+Region6TotalPopulationTimeSeriesGraph
+```
 
-\pagebreak
+```{r total population table}
+srs_pop %>%
+  ungroup() %>%
+  transmute(
+    County = county_name,
+    year = year,
+    value = paste(
+      comma(estimate),
+      comma(moe),
+      sep = " ±"
+    )
+  ) %>%
+  pivot_wider(names_from = year, values_from = value) %>%
+  knitr::kable(align = c('lccccc'))
+```
 
 ## Age Groups
 
@@ -80,8 +100,6 @@ Significant correlation between lower population density and higher population o
 Region6TractPercentOver65Map
 ```
 
-\pagebreak
-
 ## Disability
 
 ### Percent of adults with any disability
@@ -95,8 +113,6 @@ Percent of population with a disability is correlated to poverty rate in Illinoi
 ```{r disability map}
 Region6TractPercentDisabilityMap
 ```
-
-\pagebreak
 
 ## Veterans
 
@@ -112,7 +128,45 @@ Rural areas of Livingston and Iroquois counties have proportionally high numbers
 Region6TractPercentVeteranMap
 ```
 
-\pagebreak
+```{r veterans graph}
+Region6TotalVeteranTimeSeriesGraph
+```
+
+```{r veterans table}
+srs_vet %>%
+  ungroup() %>%
+  transmute(
+    County = county_name,
+    year = year,
+    value = paste(
+      comma(estimate),
+      comma(moe),
+      sep = " ±"
+    )
+  ) %>%
+  pivot_wider(names_from = year, values_from = value) %>%
+  knitr::kable(align = c('lccccc'))
+```
+
+```{r veterans over 55 graph}
+Region6PercentVeteransOver55TimeSeriesGraph
+```
+
+```{r veterans over 55 table}
+srs_veto55 %>%
+  ungroup() %>%
+  transmute(
+    County = county_name,
+    year = year,
+    value = paste(
+      percent(percentage, accuracy = .1),
+      percent(moe, accuracy = .1),
+      sep = ",±"
+    )
+  ) %>%
+  pivot_wider(names_from = year, values_from = value) %>%
+  knitr::kable(align = c('lccccc'))
+```
 
 ## Poverty
 
@@ -140,8 +194,6 @@ Concentrated in Hopkins Park, Kankakee and parts of Pontiac.
 Region6TractPercentHouseholdSNAPOver60Map
 ```
 
-\pagebreak
-
 ## Income
 
 ### Median Household Income
@@ -167,6 +219,22 @@ Similar distribution to median household income
 Region6TractIncomePerCapitaMap
 ```
 
+```{r per capita income graph}
+Region6IncomePerCapitaTimeSeriesGraph
+```
+
+```{r per capita income table}
+srs_percap %>%
+  ungroup() %>%
+  transmute(
+    County = county_name,
+    year = year,
+    value = dollar(estimate, accuracy = 1)
+  ) %>%
+  pivot_wider(names_from = year, values_from = value) %>%
+  knitr::kable(align = c('lccccc'))
+```
+
 ### GINI
 
 Calculated using detailed table B19083, "GINI INDEX OF INCOME INEQUALITY".
@@ -178,8 +246,6 @@ Possible relationship to poverty
 ```{r gini coefficient map}
 Region6TractGINICoefficientMap
 ```
-
-\pagebreak
 
 ## Transportation
 
@@ -194,3 +260,42 @@ Eastern Kankakee County, Pontiac in Livingston County, and Le Roy in McLean Coun
 ```{r percent no vehicle map}
 Region6TractPercentNoCarMap
 ```
+
+```{r percent no vehicle graph}
+Region6PercentNoCarTimeSeriesGraph
+```
+
+```{r percent no vehicle table}
+srs_nocars %>%
+  ungroup() %>%
+  transmute(
+    County = county_name,
+    year = year,
+    value = paste(
+      percent(percentage, accuracy = .1),
+      percent(moe, accuracy = .1),
+      sep = ", ±"
+    )
+  ) %>%
+  pivot_wider(names_from = year, values_from = value) %>%
+  knitr::kable(align = c('lccccc'))
+```
+
+# SHOWBUS
+
+From the 2015 HSTP Plan:
+
+>SHOW BUS has been providing public rural transportation in central Illinois since 1979.
+Services are available to all residents of rural DeWitt, Ford, Iroquois, Kankakee,
+Livingston, Macon and McLean Counties. The agency provides limited stop service and
+door-to-door service. For door-to-door service, the schedule has a general geographic
+area indicated. Rides for any purpose are available. The agency also provides limited
+Special Service Routes. SHOW BUS also assists in providing non-emergency medical
+transportation including emergency room and hospital discharge or medical
+appointments. Service contracts and voucher programs are also available through
+SHOW BUS.
+
+The nature of SHOW BUS' operations and lack of data collection limit our ability to analyze their service. Many of the connections displayed in the map below occur once or twice a week, and several occur only on alternating weeks.
+
+![showbus](map/2019-01-21_SHOWBUS-Map.png)
+
