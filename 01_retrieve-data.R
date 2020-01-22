@@ -302,7 +302,11 @@ timeSeriesVariableVector <- c(
   dnm_ovr65,
   inc_percap,
   inc_medhh,
-  gini
+  gini,
+  est_vet,
+  dnm_vet,
+  est_veto55,
+  dnm_veto55
 ) %>%
   stringr::str_trunc(10, side = "right", ellipsis = "")
 
@@ -332,7 +336,7 @@ illinoisCountyTimeSeriesData <- tryCatch(
       ),
       .id = "year"
     ) %>%
-      mutate(year = as_integer(year)) %T>%
+      mutate(year = as.integer(year)) %T>%
       readr::write_csv(illinoisCountyTimeSeriesDataFile)
   }
 )
@@ -363,7 +367,7 @@ illinoisTractTimeSeriesData <- tryCatch(
       ),
       .id = "year"
     ) %>%
-      mutate(year = as_integer(year)) %T>%
+      mutate(year = as.integer(year)) %T>%
       readr::write_csv(illinoisTractTimeSeriesDataFile)
   }
 )
