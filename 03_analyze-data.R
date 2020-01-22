@@ -34,9 +34,11 @@ tractLayer <- tigris::tracts(
   dplyr::mutate(den_pop = est_pop / area_sq_mi) %>%
   subset(per_urban <= 0.5) %>%
   sf::st_transform(crs = crs) %>%
-  dplyr::left_join(select(illinoisTractPercentChangeData, c(GEOID, growth_pop))) %>%
+  dplyr::left_join(select(illinoisTractPercentChangeData, c(GEOID, growth_pop))) %>%  # consider replacing with 5-year trend
   dplyr::select(-NAME.x) %>%
   dplyr::rename(NAME = NAME.y)
+
+region6TractLayer <- filter(tractLayer, COUNTYFP %in% region6CountyVector)
 
 ruralTractVector <- tractLayer$GEOID
 
@@ -65,6 +67,16 @@ blockGroupData <- blockGroupLayer[drop = TRUE] %>%
   dplyr::select(-c(geometry)) %>%
   as_tibble
 
+
+# showbus -----------------------------------------------------------------
+# mapping in QGIS currently--too many issues with labels
+# HSTPGeoPackage <- here::here("data/input/hstp.gpkg")
+# showbusRoutes <- sf::read_sf(HSTPGeoPackage, "showbus_routes") %>%
+#   sf::st_transform(crs)
+# showbusStops <- sf::read_sf(HSTPGeoPackage, "showbus_stops") %>%
+#   sf::st_transform(crs)
+
+# 2017-2018 estimates percent change --------------------------------------
 selection <- paste0("17", region6CountyFIPS3)
 subset(illinoisCountyPercentChangeData, GEOID %in% selection | NAME == "mean")
 # nothing of note, really. population of iroquois and livingston counties declined by 1%
