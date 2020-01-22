@@ -7,9 +7,41 @@ getACSYearsLabel <- function(acsYear) {
 
 
 # time series graphs ------------------------------------------------------
-drawTimeSeriesGraph <- function(dataset, var1, var2, category) {
+drawTimeSeriesGraph <- function(
+  dataset,
+  var1,
+  var2,
+  var2Scale = "numbers",
+  category,
+  graphTitle,
+  graphSubTitle = "American Community Survey 5-year Estimates"
+) {
+  if (var2Scale == "numbers") {
+    yLabel = "Estimate"
+    yLabelFormat = scales::comma
+  } else if (var2Scale == "dollars") {
+    yLabel = "Dollars"
+    yLabelFormat = scales::dollar
+  } else if (var2Scale == "percentage") {
+    yLabel = "Percent"
+    yLabelFormat = scales::percent
+  } else {
+    yLabel = "Estimate"
+    yLabelFormat = scales::comma
+  }
   plot <- ggplot(data = dataset, aes_string(x = var1, y = var2, color = category)) +
-    geom_point() + geom_line()
+    geom_point() +
+    geom_line() +
+    scale_y_continuous(
+      yLabel,
+      labels = yLabelFormat
+    ) +
+    labs(
+      x = "Year",
+      title = graphTitle,
+      subtitle = graphSubTitle,
+      color = "County"
+    )
   return(plot)
 }
 
@@ -53,50 +85,143 @@ region6GraphData <- subset(graphData, region6 == TRUE) %>%
   group_by(county_name, year, variable) %>%
   select(variable, year, county_name, estimate, moe)
 
-srs_pop <- subset(region6GraphData, variable == est_pop) %>%
+srs_pop <- subset(region6GraphData, variable %in% est_pop) %>%
   summarize(
     estimate = sum(estimate),
     moe = moe_sum(moe, estimate)
   )
 
-srs_percap <- subset(region6GraphData, variable == inc_percap) %>%
+srs_percap <- subset(region6GraphData, variable %in% inc_percap) %>%
+  summarize(
+    estimate = mean(estimate),
+    # moe = moe_ratio(
+    #   num = sum(estimate),
+    #   denom = count(estimate),
+    #   moe_num = moe_sum(moe),
+    #   moe_denom = count(moe)
+    # )
+  )
+
+srs_medhh <- subset(region6GraphData, variable %in% inc_medhh) %>%
   summarize(
     estimate = mean(estimate)
   )
 
-srs_medhh <- subset(region6GraphData, variable == inc_medhh) %>%
+srs_vet <- subset(region6GraphData, variable %in% est_vet) %>%
   summarize(
-    estimate = mean(estimate)
+    estimate = sum(estimate),
+    moe = moe_sum(moe, estimate)
   )
 
-drawTimeSeriesGraph(srs_pop, "year", "estimate", "county_name")
-drawTimeSeriesGraph(srs_percap, "year", "estimate", "county_name")
-drawTimeSeriesGraph(srs_medhh, "year", "estimate", "county_name")
+srs_nocars <- subset(region6GraphData, variable %in% est_nocars) %>%
+  group_by(county_name, year) %>%
+  summarize(
+    estimate = sum(estimate),
+    moe = moe_sum(moe, estimate)
+  ) %>% cbind(
+    subset(region6GraphData, variable %in% dnm_nocars) %>%
+      group_by(county_name, year) %>%
+      summarize(
+        denominator = sum(estimate),
+        denominator_moe = moe_sum(moe, denominator)
+      )
+  ) %>%
+  group_by(county_name, year) %>%
+  summarize(
+    percentage = (estimate / denominator),
+    moe = moe_ratio(estimate, denominator, moe, denominator_moe)
+  )
+
+srs_veto55 <- subset(region6GraphData, variable %in% est_veto55) %>%
+  group_by(county_name, year) %>%
+  summarize(
+    estimate = sum(estimate),
+    moe = moe_sum(moe, estimate)
+  ) %>%
+  cbind(
+    subset(region6GraphData, variable %in% dnm_nocars) %>%
+      group_by(county_name, year) %>%
+      summarize(
+        denominator = sum(estimate),
+        denominator_moe = moe_sum(moe, denominator)
+      )
+  ) %>%
+  group_by(county_name, year) %>%
+  summarize(
+    percentage = (estimate / denominator),
+    moe = moe_ratio(estimate, denominator, moe, denominator_moe)
+  )
+
+Region6TotalPopulationTimeSeriesGraph <- drawTimeSeriesGraph(
+  dataset = srs_pop,
+  var1 = "year",
+  var2 = "estimate",
+  category = "county_name",
+  graphTitle = "Total Population"
+)
+
+Region6IncomePerCapitaTimeSeriesGraph <- drawTimeSeriesGraph(
+  dataset = srs_percap,
+  var1 = "year",
+  var2 = "estimate",
+  var2Scale = "dollars",
+  category = "county_name",
+  graphTitle = "Income Per Capita"
+)
+
+# drawTimeSeriesGraph(srs_medhh, "year", "estimate", "county_name")
+Region6TotalVeteranTimeSeriesGraph <- drawTimeSeriesGraph(
+  dataset = srs_vet,
+  var1 = "year",
+  var2 = "estimate",
+  category = "county_name",
+  graphTitle = "Total Veterans"
+)
+
+Region6PercentVeteransOver55TimeSeriesGraph <- drawTimeSeriesGraph(
+  dataset = srs_veto55,
+  var1 = "year",
+  var2 = "percentage",
+  var2Scale = "percentage",
+  category = "county_name",
+  graphTitle = "Percent Veterans Over 55"
+)
+
+Region6PercentNoCarTimeSeriesGraph <- drawTimeSeriesGraph(
+  dataset = srs_nocars,
+  var1 = "year",
+  var2 = "percentage",
+  var2Scale = "percentage",
+  category = "county_name",
+  graphTitle = "Percent Population Without Household Vehicles"
+)
 
 
 # other graphs ------------------------------------------------------------
-drawGraph <- function(dataset, var1, var2) {
-  linearModel <- lm(
-    paste(var1, "~", var2),
-    data = dataset
-  )
-  plot <- ggplot(data = dataset, aes_string(x = var1, y = var2)) +
-    geom_point() +
-    stat_smooth(method = "lm", col = "red")
-    # geom_line(mapping = aes(linearModel))
-  print(summary(linearModel))
-  return(plot)
-}
+# drawGraph <- function(dataset, var1, var2) {
+#   linearModel <- lm(
+#     paste(var1, "~", var2),
+#     data = dataset
+#   )
+#   plot <- ggplot(data = dataset, aes_string(x = var1, y = var2)) +
+#     geom_point() +
+#     stat_smooth(method = "lm", col = "red")
+#     # geom_line(mapping = aes(linearModel))
+#   print(summary(linearModel))
+#   return(plot)
+# }
+# 
+# region6TractData <- filter(tractData, COUNTYFP %in% region6CountyFIPS3)
+# 
+# drawGraph(dataset = tractData, var1 = "per_dsblty", var2 = "per_blwpov") # sig
+# drawGraph(dataset = tractData, var1 = "gini", var2 = "per_blwpov") # sig
+# drawGraph(dataset = tractData, var1 = "growth_pop", var2 = "per_dsblty")
+# drawGraph(dataset = tractData, var1 = "per_blwpov", var2 = "per_dsblty")
+# drawGraph(dataset = tractData, var1 = "den_pop", var2 = "per_ovr65")
+# drawGraph(dataset = tractData, var1 = "per_blwpov", var2 = "den_pop")
 
-region6TractData <- filter(tractData, COUNTYFP %in% region6CountyFIPS3)
-
-drawGraph(dataset = tractData, var1 = "per_dsblty", var2 = "per_blwpov") # sig
-drawGraph(dataset = tractData, var1 = "gini", var2 = "per_blwpov") # sig
-drawGraph(dataset = tractData, var1 = "growth_pop", var2 = "per_dsblty")
-drawGraph(dataset = tractData, var1 = "per_blwpov", var2 = "per_dsblty")
-drawGraph(dataset = tractData, var1 = "den_pop", var2 = "per_ovr65")
-drawGraph(dataset = tractData, var1 = "per_blwpov", var2 = "den_pop")
 # HSTP map function -------------------------------------------------------
+
 getHSTPMap <- function(
   sf,
   backgroundLayer = countyLayer,
@@ -240,7 +365,7 @@ mapVariablePalettes <- c(
 # income per capita by tract
 suppressWarnings(
   Region6TractIncomePerCapitaMap <- getHSTPMap(
-    sf = tractLayer,
+    sf = region6TractLayer,
     variable = "inc_percap",
     title = IncomePerCapitaMapTitle,
     vals = "dollars",
@@ -257,7 +382,7 @@ suppressWarnings(
 # gini coefficient by tract
 suppressWarnings(
   Region6TractGINICoefficientMap <- getHSTPMap(
-    sf = tractLayer,
+    sf = region6TractLayer,
     variable = "gini",
     title = GINICoefficientMapTitle,
     vals = "decimal",
@@ -274,7 +399,7 @@ suppressWarnings(
 # median household income by tract
 suppressWarnings(
   Region6TractMedianHouseholdIncomeMap <- getHSTPMap(
-    sf = tractLayer,
+    sf = region6TractLayer,
     variable = "inc_medhh",
     title = MedianHouseholdIncomeMapTitle,
     vals = "dollars",
@@ -291,7 +416,7 @@ suppressWarnings(
 # percent below 18 by tract
 suppressWarnings(
   Region6TractPercentBelow18Map <- getHSTPMap(
-    sf = tractLayer,
+    sf = region6TractLayer,
     variable = "per_blw18",
     title = PercentBelow18MapTitle,
     vals = "percent",
@@ -308,7 +433,7 @@ suppressWarnings(
 # percent 18 to 65 by tract
 suppressWarnings(
   Region6TractPercent18to65Map <- getHSTPMap(
-    sf = tractLayer,
+    sf = region6TractLayer,
     variable = "per_18to65",
     title = Percent18to65MapTitle,
     vals = "percent",
@@ -325,7 +450,7 @@ suppressWarnings(
 # percent over 65 by tract
 suppressWarnings(
   Region6TractPercentOver65Map <- getHSTPMap(
-    sf = tractLayer,
+    sf = region6TractLayer,
     variable = "per_ovr65",
     title = PercentOver65MapTitle,
     vals = "percent",
@@ -342,7 +467,7 @@ suppressWarnings(
 # percent veteran by tract
 suppressWarnings(
   Region6TractPercentVeteranMap <- getHSTPMap(
-    sf = tractLayer,
+    sf = region6TractLayer,
     variable = "per_vet",
     title = PercentVeteranMapTitle,
     vals = "percent",
@@ -359,7 +484,7 @@ suppressWarnings(
 # percent with disability by tract
 suppressWarnings(
   Region6TractPercentDisabilityMap <- getHSTPMap(
-    sf = tractLayer,
+    sf = region6TractLayer,
     variable = "per_dsblty",
     title = PercentDisabilityMapTitle,
     vals = "percent",
@@ -376,7 +501,7 @@ suppressWarnings(
 # percent below poverty by tract
 suppressWarnings(
   Region6TractPercentBelowPovertyMap <- getHSTPMap(
-    sf = tractLayer,
+    sf = region6TractLayer,
     variable = "per_blwpov",
     title = PercentBelowPovertyMapTitle,
     vals = "percent",
@@ -393,7 +518,7 @@ suppressWarnings(
 # percent without car by tract
 suppressWarnings(
   Region6TractPercentNoCarMap <- getHSTPMap(
-    sf = tractLayer,
+    sf = region6TractLayer,
     variable = "per_nocars",
     title = PercentNoCarMapTitle,
     vals = "percent",
@@ -410,7 +535,7 @@ suppressWarnings(
 # percent without diploma by tract
 suppressWarnings(
   Region6TractPercentNoDiplomaMap <- getHSTPMap(
-    sf = tractLayer,
+    sf = region6TractLayer,
     variable = "per_nodipl",
     title = PercentNoDiplomaMapTitle,
     vals = "percent",
@@ -427,7 +552,7 @@ suppressWarnings(
 # percent in household on SNAP with person over 60 by tract
 suppressWarnings(
   Region6TractPercentHouseholdSNAPOver60Map <- getHSTPMap(
-    sf = tractLayer,
+    sf = region6TractLayer,
     variable = "per_hhSo60",
     title = PercentHouseholdSNAPOver60MapTitle,
     vals = "percent",
@@ -444,7 +569,7 @@ suppressWarnings(
 # population density of tracts
 suppressWarnings(
   Region6TractPopulationDensityMap <- getHSTPMap(
-    sf = tractLayer,
+    sf = region6TractLayer,
     variable = "den_pop",
     title = PopulationDensityMapTitle,
     vals = "decimal",
@@ -463,7 +588,7 @@ suppressWarnings(
 # population growth of tracts
 suppressWarnings(
   Region6TractPopulationGrowthMap <- getHSTPMap(
-    sf = tractLayer,
+    sf = region6TractLayer,
     variable = "growth_pop",
     title = PopulationGrowthMapTitle,
     vals = "percent",
@@ -584,3 +709,59 @@ suppressWarnings(
       )
     )
 )
+
+
+# SHOWBUS mapping ---------------------------------------------------------
+# lots of lines, intricate labeling > better to do in QGIS
+# getShowbusMap <- function(
+#   extentLayer = showbusRoutes,
+#   routesLayer = showbusRoutes,
+#   stopsLayer = showbusStops,
+#   foregroundLayer = region6CountyLayer,
+#   backgroundLayer = countyLayer,
+#   title,
+#   proj = crs
+# ) {
+#   require(tmap)
+#   map <- tm_shape(
+#     backgroundLayer,
+#     bbox = extentLayer,
+#     projection = proj,
+#     unit = "mi"
+#   ) +
+#     tm_fill(col = "grey85") +
+#     tm_borders(col = "white", lwd = 2) +
+#     tm_shape(foregroundLayer) +
+#     tm_fill(col = "white", lwd = 2) +
+#     tm_borders(col = "black", lwd = 2) +
+#     tm_shape(routesLayer) +
+#     tm_lines(
+#       lty = 2
+#     ) +
+#     tm_shape(stopsLayer) +
+#     tm_dots() +
+#     tm_layout(
+#       title = title,
+#       title.size = 1.2,
+#       title.fontface = "bold",
+#       fontfamily = "sans",
+#       frame.lwd = 2,
+#       outer.bg.color = "#00000000",
+#       asp = 4/3
+#     )
+#   map
+# }
+# getShowbusMap(
+#   title = "SHOWBUS Service Map"
+# )
+# 
+# 
+# getShowbusChoroplethMap <- function(
+#   extentLayer = showbusRoutes,
+#   foregroundLayer = region6CountyLayer,
+#   backgroundLayer = countyLayer,
+#   title,
+#   proj = crs
+# ) {
+#   
+# }
