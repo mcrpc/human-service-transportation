@@ -47,19 +47,7 @@ Region6TotalPopulationTimeSeriesGraph
 ```
 
 ```{r total population table}
-srs_pop %>%
-  ungroup() %>%
-  transmute(
-    County = county_name,
-    year = year,
-    value = paste(
-      comma(estimate, 1),
-      comma(moe, 1),
-      sep = " ±"
-    )
-  ) %>%
-  pivot_wider(names_from = year, values_from = value) %>%
-  knitr::kable(align = c('lccccc'))
+Region6TotalPopulationTimeSeriesTable
 ```
 
 ## Age Groups
@@ -133,19 +121,7 @@ Region6TotalVeteranTimeSeriesGraph
 ```
 
 ```{r veterans table}
-srs_vet %>%
-  ungroup() %>%
-  transmute(
-    County = county_name,
-    year = year,
-    value = paste(
-      comma(estimate, 1),
-      comma(moe, 1),
-      sep = " ±"
-    )
-  ) %>%
-  pivot_wider(names_from = year, values_from = value) %>%
-  knitr::kable(align = c('lccccc'))
+Region6TotalVeteranTimeSeriesTable
 ```
 
 ```{r veterans over 55 graph}
@@ -153,19 +129,7 @@ Region6PercentVeteransOver55TimeSeriesGraph
 ```
 
 ```{r veterans over 55 table}
-srs_veto55 %>%
-  ungroup() %>%
-  transmute(
-    County = county_name,
-    year = year,
-    value = paste(
-      percent(percentage, accuracy = .1),
-      percent(moe, accuracy = .1),
-      sep = ",±"
-    )
-  ) %>%
-  pivot_wider(names_from = year, values_from = value) %>%
-  knitr::kable(align = c('lccccc'))
+Region6PercentVeteransOver55TimeSeriesTable
 ```
 
 ## Poverty
@@ -224,15 +188,7 @@ Region6IncomePerCapitaTimeSeriesGraph
 ```
 
 ```{r per capita income table}
-srs_percap %>%
-  ungroup() %>%
-  transmute(
-    County = county_name,
-    year = year,
-    value = dollar(estimate, accuracy = 1)
-  ) %>%
-  pivot_wider(names_from = year, values_from = value) %>%
-  knitr::kable(align = c('lccccc'))
+Region6IncomePerCapitaTimeSeriesTable
 ```
 
 ### GINI
@@ -266,19 +222,7 @@ Region6PercentNoCarTimeSeriesGraph
 ```
 
 ```{r percent no vehicle table}
-srs_nocars %>%
-  ungroup() %>%
-  transmute(
-    County = county_name,
-    year = year,
-    value = paste(
-      percent(percentage, accuracy = .1),
-      percent(moe, accuracy = .1),
-      sep = ", ±"
-    )
-  ) %>%
-  pivot_wider(names_from = year, values_from = value) %>%
-  knitr::kable(align = c('lccccc'))
+Region6PercentNoCarTimeSeriesTable
 ```
 
 # SHOWBUS
