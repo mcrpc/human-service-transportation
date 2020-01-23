@@ -765,3 +765,42 @@ suppressWarnings(
 # ) {
 #   
 # }
+
+# kable wrapper for report ------------------------------------------------
+
+makeTimeSeriesTable <- function(acsTibble, data_column, moe_column) {
+  require(tidyr)
+  require(dplyr)
+  require(knitr)
+  
+  timeSeriesTable <- acsTibble %>%
+    ungroup %>%
+    transmute(
+      County = county_name,
+      year = year,
+      value = paste(
+        comma(substitute(data_column), 1),
+        comma(moe, 1),
+        sep = " ±"
+      )
+    ) %>%
+    pivot_wider(names_from = year, values_from = value) %>%
+    kable(align = c('lccccc'))
+  return(timeSeriesTable)
+}
+
+makeTimeSeriesTable(srs_vet, estimate, moe)
+
+srs_vet %>%
+  ungroup() %>%
+  transmute(
+    County = county_name,
+    year = year,
+    value = paste(
+      comma(estimate, 1),
+      comma(moe, 1),
+      sep = " ±"
+    )
+  ) %>%
+  pivot_wider(names_from = year, values_from = value) %>%
+  knitr::kable(align = c('lccccc'))

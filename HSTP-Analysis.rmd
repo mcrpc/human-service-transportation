@@ -53,8 +53,8 @@ srs_pop %>%
     County = county_name,
     year = year,
     value = paste(
-      comma(estimate),
-      comma(moe),
+      comma(estimate, 1),
+      comma(moe, 1),
       sep = " ±"
     )
   ) %>%
@@ -139,8 +139,8 @@ srs_vet %>%
     County = county_name,
     year = year,
     value = paste(
-      comma(estimate),
-      comma(moe),
+      comma(estimate, 1),
+      comma(moe, 1),
       sep = " ±"
     )
   ) %>%

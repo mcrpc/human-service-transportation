@@ -11,7 +11,8 @@ packages <- c(
   "units",
   "scales",
   "cartography",
-  "here"
+  "here",
+  "knitr"
 )
 
 invisible(lapply(packages, library, character.only = TRUE))
