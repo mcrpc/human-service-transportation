@@ -296,8 +296,18 @@ timeSeriesColumnTypes <- readr::cols(
 timeSeriesVariableVector <- c(
   est_blwpov,
   dnm_blwpov,
+  est_hhsnap,
+  dnm_hhsnap,
+  # est_nodipl,
+  # dnm_nodipl,
+  # the 2011-2015 ACS 5-year estimates changed S2301
+  # causing error: unknown variable 'S2301_C01_032E'
+  est_unempr,
+  est_lbrfpr,
   est_nocars,
   dnm_nocars,
+  est_alttrn,
+  dnm_alttrn,
   est_ovr65,
   dnm_ovr65,
   inc_percap,
@@ -306,40 +316,48 @@ timeSeriesVariableVector <- c(
   est_vet,
   dnm_vet,
   est_veto55,
-  dnm_veto55
-) %>%
-  stringr::str_trunc(10, side = "right", ellipsis = "")
-
-illinoisCountyTimeSeriesDataFile <- paste(
-  outputDataDirectory,
-  "county-time-series-data.csv",
-  sep = "/"
+  dnm_veto55,
+  est_dsblty,
+  dnm_dsblty,
+  est_dsbo65,
+  dnm_dsbo65
 )
+  # stringr::str_trunc(10, side = "right", ellipsis = "")
+# removing E may not be necessary
 
-illinoisCountyTimeSeriesData <- tryCatch(
-  {
-    readr::read_csv(
-      illinoisCountyTimeSeriesDataFile,
-      col_types = timeSeriesColumnTypes
-    )
-  },
-  error = function(err) {
-    illinoisCountyTimeSeriesData <- map_dfr(
-      acsYearList,
-      ~ get_acs(
-        geography = "county",
-        variable = timeSeriesVariableVector,
-        state = "17",
-        year = .x,
-        survey = acsSurvey,
-        output = "tidy"
-      ),
-      .id = "year"
-    ) %>%
-      mutate(year = as.integer(year)) %T>%
-      readr::write_csv(illinoisCountyTimeSeriesDataFile)
-  }
-)
+# county time series data is not currently being used
+# due to the need to filter out urban areas from McLean and Kankakee
+#
+# illinoisCountyTimeSeriesDataFile <- paste(
+#   outputDataDirectory,
+#   "county-time-series-data.csv",
+#   sep = "/"
+# )
+# 
+# illinoisCountyTimeSeriesData <- tryCatch(
+#   {
+#     readr::read_csv(
+#       illinoisCountyTimeSeriesDataFile,
+#       col_types = timeSeriesColumnTypes
+#     )
+#   },
+#   error = function(err) {
+#     illinoisCountyTimeSeriesData <- map_dfr(
+#       acsYearList,
+#       ~ get_acs(
+#         geography = "county",
+#         variable = timeSeriesVariableVector,
+#         state = "17",
+#         year = .x,
+#         survey = acsSurvey,
+#         output = "tidy"
+#       ),
+#       .id = "year"
+#     ) %>%
+#       mutate(year = as.integer(year)) %T>%
+#       readr::write_csv(illinoisCountyTimeSeriesDataFile)
+#   }
+# )
 
 illinoisTractTimeSeriesDataFile <- paste(
   outputDataDirectory,
@@ -375,6 +393,13 @@ illinoisTractTimeSeriesData <- tryCatch(
 
 # geographic data ---------------------------------------------------------
 
-
+get_acs(
+  geography = "tract",
+  variable = est_nodipl,
+  state = "17",
+  year = 2014,
+  survey = acsSurvey,
+  output = "tidy"
+)
 
 

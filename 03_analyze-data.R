@@ -93,3 +93,116 @@ subset(
 ) %>%
   select(GEOID, growth_pop) %>%
   summarize(mean(growth_pop))
+
+
+# time series data processing ---------------------------------------------
+
+graphData <- subset(
+  illinoisTractTimeSeriesData,
+  GEOID %in% ruralTractVector
+) %>%
+  mutate(
+    state_FIPS = str_trunc(GEOID, 2, "right", ellipsis = ""),
+    county_FIPS = str_trunc(GEOID, 5, "right", ellipsis = ""),
+    variable = paste0(variable, "E"),
+    county_name = word(NAME, 4)
+  ) %>%
+  group_by(
+    region6 = county_FIPS %in% region6CountyVector,
+    year,
+    variable
+  ) %>%
+  select(
+    c(
+      region6,
+      variable,
+      year,
+      state_FIPS,
+      county_FIPS,
+      GEOID,
+      county_name,
+      estimate,
+      moe
+    )
+  )
+
+region6GraphData <- subset(graphData, region6 == TRUE) %>%
+  mutate(
+    county_name = if_else(
+      county_name %in% c("McLean", "Kankakee"),
+      paste("Rural", county_name),
+      county_name
+    )
+  ) %>%
+  group_by(county_name, year, variable) %>%
+  select(variable, year, county_name, estimate, moe)
+
+srs_pop <- subset(region6GraphData, variable %in% est_pop) %>%
+  summarize(
+    estimate = sum(estimate),
+    moe = moe_sum(moe, estimate)
+  )
+
+srs_percap <- subset(region6GraphData, variable %in% inc_percap) %>%
+  summarize(
+    estimate = mean(estimate),
+    # moe = moe_ratio(
+    #   num = sum(estimate),
+    #   denom = count(estimate),
+    #   moe_num = moe_sum(moe),
+    #   moe_denom = count(moe)
+    # )
+  )
+
+srs_dsblty <- subset(region6GraphData, variable %in% est_dsblty) %>%
+  summarize(
+    estimate = mean(estimate),
+    moe = moe_sum(moe, estimate)
+  )
+
+srs_vet <- subset(region6GraphData, variable %in% est_vet) %>%
+  summarize(
+    estimate = sum(estimate),
+    moe = moe_sum(moe, estimate)
+  )
+
+srs_veto55 <- subset(region6GraphData, variable %in% est_veto55) %>%
+  group_by(county_name, year) %>%
+  summarize(
+    estimate = sum(estimate),
+    moe = moe_sum(moe, estimate)
+  ) %>%
+  cbind(
+    subset(region6GraphData, variable %in% dnm_nocars) %>%
+      group_by(county_name, year) %>%
+      summarize(
+        denominator = sum(estimate),
+        denominator_moe = moe_sum(moe, denominator)
+      )
+  ) %>%
+  group_by(county_name, year) %>%
+  summarize(
+    percentage = (estimate / denominator),
+    moe = moe_ratio(estimate, denominator, moe, denominator_moe)
+  )
+
+srs_nocars <- subset(region6GraphData, variable %in% est_nocars) %>%
+  group_by(county_name, year) %>%
+  summarize(
+    estimate = sum(estimate),
+    moe = moe_sum(moe, estimate)
+  ) %>% cbind(
+    subset(region6GraphData, variable %in% dnm_nocars) %>%
+      group_by(county_name, year) %>%
+      summarize(
+        denominator = sum(estimate),
+        denominator_moe = moe_sum(moe, denominator)
+      )
+  ) %>%
+  group_by(county_name, year) %>%
+  summarize(
+    percentage = (estimate / denominator),
+    moe = moe_ratio(estimate, denominator, moe, denominator_moe)
+  )
+
+# add new time series tables
