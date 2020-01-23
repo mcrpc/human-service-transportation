@@ -26,17 +26,19 @@ region6CountyLayer <- subset(
 tractLayer <- tigris::tracts(
   state = "17",
   cb = TRUE,
-  class = "sf"
+  class = "sf",
+  year = 2010
 ) %>%
-  dplyr::mutate(area_sq_mi = ALAND * 3.861e-7) %>%
+  dplyr::transmute(
+    GEOID = paste0(STATE, COUNTY, TRACT),
+    area_sq_mi = CENSUSAREA,
+    COUNTYFP
+  ) %>%
   dplyr::left_join(illinoisTractData, by = "GEOID") %>%
-  dplyr::select(-c(AFFGEOID, LSAD, ALAND, AWATER, contains("dnm"))) %>%
   dplyr::mutate(den_pop = est_pop / area_sq_mi) %>%
   subset(per_urban <= 0.5) %>%
   sf::st_transform(crs = crs) %>%
-  dplyr::left_join(select(illinoisTractPercentChangeData, c(GEOID, growth_pop))) %>%  # consider replacing with 5-year trend
-  dplyr::select(-NAME.x) %>%
-  dplyr::rename(NAME = NAME.y)
+  dplyr::left_join(select(illinoisTractPercentChangeData, c(GEOID, growth_pop)))  # consider replacing with 5-year trend
 
 region6TractLayer <- filter(tractLayer, COUNTYFP %in% region6CountyVector)
 
@@ -46,11 +48,15 @@ blockGroupLayer <- tigris::block_groups(
   state = "17",
   county = region6CountyFIPS3,
   cb = TRUE,
-  class = "sf"
+  class = "sf",
+  year = 2010
 ) %>%
-  dplyr::mutate(area_sq_mi = ALAND * 3.861e-7) %>%
+  dplyr::transmute(
+    GEOID = paste0(STATE, COUNTY, TRACT, BLKGRP),
+    area_sq_mi = CENSUSAREA,
+    COUNTYFP
+  ) %>%
   dplyr::left_join(region6BlockGroupData, by = "GEOID") %>%
-  dplyr::select(-c(AFFGEOID, LSAD, ALAND, AWATER, contains("dnm"))) %>%
   dplyr::mutate(den_pop = est_pop / area_sq_mi) %>%
   sf::st_transform(crs = crs) %>%
   .[tractLayer, op = st_covered_by]
