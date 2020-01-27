@@ -16,7 +16,10 @@ packages <- c(
 )
 
 invisible(lapply(packages, library, character.only = TRUE))
-options(tigris_use_cache = TRUE) # causes geometries to be stored in cache instead of re-loaded every time
+options(
+  tigris_use_cache = TRUE,
+  tigris_class = "sf"
+) # causes geometries to be stored in cache instead of re-loaded every time
 # tmap_options(
 #   show.messages = FALSE,
 #   output.dpi = 300
