@@ -393,13 +393,5 @@ illinoisTractTimeSeriesData <- tryCatch(
 
 # geographic data ---------------------------------------------------------
 
-get_acs(
-  geography = "tract",
-  variable = est_nodipl,
-  state = "17",
-  year = 2014,
-  survey = acsSurvey,
-  output = "tidy"
-)
 
 
