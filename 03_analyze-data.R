@@ -1,6 +1,7 @@
 crs <- sf::st_crs("+init=esri:102008 +lon_0=-89")
 
 # set up layers -----------------------------------------------------------
+
 countyLayer <- tigris::counties(c("17", "18"), cb = TRUE, class = "sf") %>%
   dplyr::mutate(area_sq_mi = ALAND * 3.861e-7) %>%
   dplyr::select(
@@ -93,7 +94,6 @@ subset(
 ) %>%
   select(GEOID, growth_pop) %>%
   summarize(mean(growth_pop))
-
 
 # time series data processing ---------------------------------------------
 
@@ -205,4 +205,34 @@ srs_nocars <- subset(region6GraphData, variable %in% est_nocars) %>%
     moe = moe_ratio(estimate, denominator, moe, denominator_moe)
   )
 
-# add new time series tables
+srs_blwpov <- subset(region6GraphData, variable %in% est_blwpov) %>%
+  group_by(county_name, year) %>%
+  summarize(
+    estimate = sum(estimate),
+    moe = moe_sum(moe, estimate)
+  ) %>% cbind(
+    subset(region6GraphData, variable %in% dnm_blwpov) %>%
+      group_by(county_name, year) %>%
+      summarize(
+        denominator = sum(estimate),
+        denominator_moe = moe_sum(moe, denominator)
+      )
+  ) %>%
+  group_by(county_name, year) %>%
+  summarize(
+    percentage = (estimate / denominator),
+    moe = moe_ratio(estimate, denominator, moe, denominator_moe)
+  )
+
+# may be introducing unacceptable amounts of error by taking the mean
+# of several tracts
+# srs_unempr <- subset(region6GraphData, variable %in% est_unempr) %>%
+#   group_by(county_name, year) %>%
+#   summarize(
+#     estimate = mean(estimate)
+#   )
+
+# prepare dot density map data --------------------------------------------
+
+
+
