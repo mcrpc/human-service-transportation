@@ -1,12 +1,11 @@
-
-
 # define local functions --------------------------------------------------
+
 getACSYearsLabel <- function(acsYear) {
   paste("Data Source: Census ACS 5-year estimates,", acsYear - 4, "-", acsYear)
 }
 
-
 # time series graphs ------------------------------------------------------
+
 drawTimeSeriesGraph <- function(
   dataset,
   var1,
@@ -63,6 +62,7 @@ Region6IncomePerCapitaTimeSeriesGraph <- drawTimeSeriesGraph(
 )
 
 # drawTimeSeriesGraph(srs_medhh, "year", "estimate", "county_name")
+
 Region6TotalVeteranTimeSeriesGraph <- drawTimeSeriesGraph(
   dataset = srs_vet,
   var1 = "year",
@@ -89,6 +89,16 @@ Region6PercentNoCarTimeSeriesGraph <- drawTimeSeriesGraph(
   graphTitle = "Percent Population Without Household Vehicles"
 )
 
+# for testing
+# 
+# srs_test <- filter(illinoisTractTimeSeriesData, variable == "B01001_001")
+# 
+# mdl_test <- lm(estimate ~ year, srs_test)
+# 
+# ggplot(data = srs_test, aes(x = year, y = estimate, color = county_name)) +
+#   geom_point() +
+#   geom_line()
+
 
 # other graphs ------------------------------------------------------------
 # drawGraph <- function(dataset, var1, var2) {
@@ -114,7 +124,6 @@ Region6PercentNoCarTimeSeriesGraph <- drawTimeSeriesGraph(
 # drawGraph(dataset = tractData, var1 = "per_blwpov", var2 = "den_pop")
 
 # HSTP map function -------------------------------------------------------
-
 getHSTPMap <- function(
   sf,
   backgroundLayer = countyLayer,
@@ -205,6 +214,7 @@ getHSTPMap <- function(
 }
 
 # variables for map legends -----------------------------------------------
+
 # mapVariables <- c(
 #   IncomePerCapita,
 #   GINICoefficient,
@@ -220,6 +230,7 @@ getHSTPMap <- function(
 #   PercentHouseholdSNAPOver60,
 #   PopulationDensity
 # )
+
 mapTitles <- c(
   IncomePerCapitaMapTitle <- "Income Per Capita",
   GINICoefficientMapTitle <- "GINI Coefficient",
@@ -583,6 +594,64 @@ suppressWarnings(
       )
     )
 )
+# veteran dot density block group map
+veteransHealthAdministrationFacilities <- sf::read_sf(
+  HSTPGeoPackage,
+  "facilities_VHA"
+) %>%
+  sf::st_transform(crs = crs)
+
+Region6BlockGroupVeteranDotDensityMap <- tmap::tm_shape(
+  countyLayer,
+  projection = crs,
+  bbox = veteranDotDensityLayer,
+  unit = "mi"
+) +
+  tmap::tm_fill(col = "grey85") +
+  tmap::tm_borders(col = "white", lwd = 2) +
+  tmap::tm_shape(blockGroupLayer) +
+  tmap::tm_fill(col = "white") +
+  tmap::tm_borders(col = "grey50", lwd = .5) +
+  tmap::tm_shape(veteranDotDensityLayer) +
+  tmap::tm_dots(col = "darkgreen") +
+  tmap::tm_shape(veteransHealthAdministrationFacilities) +
+  tmap::tm_symbols(
+    col = "gold",
+    shape = 24,
+    size = 0.7
+  ) +
+  tmap::tm_shape(region6CountyLayer) +
+  tmap::tm_borders(col = "black", lwd = 2) +
+  tmap::tm_layout(
+    legend.position = c("left", "top"),
+    legend.title.size = 1.1,
+    legend.title.fontface = "bold",
+    title = "Veterans per Block Group",
+    title.size = 1.2,
+    title.fontface = "bold",
+    fontfamily = "sans",
+    frame.lwd = 2,
+    outer.bg.color = "#00000000",
+    asp = 4/3
+  ) +
+  tmap::tm_add_legend(
+    type = "symbol",
+    size = c(.3, .7),
+    col = c("darkgreen", "gold"),
+    shape = c(16, 24),
+    labels = c(" ~ 10 veterans", " VHA Outpatient Clinic")
+  ) +
+  tmap::tm_scale_bar(
+    width = 0.2,
+    text.size = .5
+  ) +
+  tmap::tm_credits(
+    text = getACSYearsLabel(acsYear),
+    size = .5,
+    bg.color = "white",
+    bg.alpha = .5
+  )
+
 # population density of block groups
 suppressWarnings(
   Region6BlockGroupPopulationDensityMap <- getHSTPMap(
@@ -661,6 +730,9 @@ suppressWarnings(
 
 
 # make pretty tables for report -------------------------------------------
+# for reasons unknown, the ± sometimes causes problems with the tables,
+# typically by inserting a strange character. re-running this block
+# seems to solve the problem when it occurs
 
 Region6TotalPopulationTimeSeriesTable <- srs_pop %>%
   ungroup() %>%
