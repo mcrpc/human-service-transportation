@@ -124,6 +124,16 @@ Region6TotalVeteranTimeSeriesGraph
 Region6TotalVeteranTimeSeriesTable
 ```
 
+The number of veterans in the rural areas of the Region 6 counties would appear to be declining faster than the overall population. However, only in Rural Kankakee and Rural McLean does the decline between the 2014 and 2018 estimates exceed the margin of error.
+
+```{r veterans dot density}
+Region6BlockGroupVeteranDotDensityMap
+```
+
+The above dot density map should be taken with the usual caveats that come with ACS estimates, especially ones aggregated at the block group level.
+
+### Veterans Over 55
+
 ```{r veterans over 55 graph}
 Region6PercentVeteransOver55TimeSeriesGraph
 ```

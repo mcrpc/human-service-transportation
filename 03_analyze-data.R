@@ -234,5 +234,14 @@ srs_blwpov <- subset(region6GraphData, variable %in% est_blwpov) %>%
 
 # prepare dot density map data --------------------------------------------
 
-
-
+veteranDotDensityLayer <- tigris::block_groups(
+    state = "17",
+    county = region6CountyFIPS3,
+    cb = TRUE,
+    year = 2018
+  ) %>%
+  sf::st_transform(crs) %>%
+  dplyr::left_join(region6BlockGroupData, by = "GEOID") %>%
+  dplyr::select(GEOID, est_vet, dnm_vet) %>%
+  sf::st_sample(size = round(.$est_vet / 10)) %>%
+  sf::st_sf()
