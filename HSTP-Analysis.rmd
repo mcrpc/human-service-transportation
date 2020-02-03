@@ -168,7 +168,7 @@ Concentrated in Hopkins Park, Kankakee and parts of Pontiac.
 Region6TractPercentHouseholdSNAPOver60Map
 ```
 
-## Income
+## Income & Education
 
 ### Median Household Income
 
@@ -199,6 +199,16 @@ Region6IncomePerCapitaTimeSeriesGraph
 
 ```{r per capita income table}
 Region6IncomePerCapitaTimeSeriesTable
+```
+
+### No High School Diploma
+
+Calculated using subject table S2301, "EMPLOYMENT STATUS".
+
+The average value for Illinois counties in `r acsYear` was `r percent(mean(illinoisCountyData$per_nodipl))`.
+
+```{r no diploma map}
+Region6TractPercentNoDiplomaMap
 ```
 
 ### GINI
@@ -234,6 +244,17 @@ Region6PercentNoCarTimeSeriesGraph
 ```{r percent no vehicle table}
 Region6PercentNoCarTimeSeriesTable
 ```
+
+### Percent of Workers with Means of Transportation other than Drove Alone
+
+Calculated using detailed table B08119, "MEANS OF TRANSPORTATION TO WORK BY WORKERS' EARNINGS IN THE PAST 12 MONTHS (IN 2018 INFLATION-ADJUSTED DOLLARS)". This percentage represents the number of workers over 16 who report that they commute by any means other than "drove alone". This could include taking transit, walking, biking, carpooling, working from home, taxis, and other modes.
+
+The average value for Illinois counties in `r acsYear` was `r percent(mean(illinoisCountyData$per_alttrn))`.
+
+```{r percent alternative commute}
+Region6TractPercentAlternativeCommuteMap
+```
+
 
 # SHOWBUS
 

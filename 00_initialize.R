@@ -83,7 +83,6 @@ acsVariableTibble <- tibble::tribble(
   "est_hhSo60", "Population - Household Recieving SNAP, at least one Household Member Over 60", est_hhSo60 <- "B22001_003E", dnm_hhSo60 <- "B22001_001E",
   "est_hhsnap", "Households - Receiving SNAP", est_hhsnap <- "B22001_002E", dnm_hhsnap <- dnm_hhSo60,
   "gini", "Income - GINI Coefficient", gini <- "B19083_001E", NULL,
-  
 )
 
 

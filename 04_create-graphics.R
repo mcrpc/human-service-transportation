@@ -243,9 +243,10 @@ mapTitles <- c(
   PercentBelowPovertyMapTitle <- "Percent of Population with Household Income below Poverty", # too long
   PercentNoCarMapTitle <- "Percent of Population with Zero Household Vehicles", # too long
   PercentNoDiplomaMapTitle <- "Percent of Adults without High School Diploma", # too long
-  PercentHouseholdSNAPOver60MapTitle <- "Percent of Households receiving SNAP with someone over 60",# too long
+  PercentHouseholdSNAPOver60MapTitle <- "Percent of Households on SNAP with someone over 60",# too long
   PopulationDensityMapTitle <- "Population per Square Mile",
-  PopulationGrowthMapTitle <- "Population Change, 2017-2018"
+  PopulationGrowthMapTitle <- "Population Change, 2017-2018",
+  PercentAlternativeCommuteMapTitle <- "Percent of Workers with Alternative Commutes" # probably too long
 )
 mapVariablePalettes <- c(
   IncomePerCapitaPalette <- "Blues",
@@ -261,7 +262,8 @@ mapVariablePalettes <- c(
   PercentNoDiplomaPalette <- "YlOrRd",
   PercentHouseholdSNAPOver60Palette <- "YlOrRd",
   PopulationDensityPalette <- "YlGn",
-  PopulationGrowthPalette <- "RdBu"
+  PopulationGrowthPalette <- "RdBu",
+  PercentAlternativeCommutePalette <- "Greens"
 )
 
 # county maps -------------------------------------------------------------
@@ -432,6 +434,23 @@ suppressWarnings(
       filename = paste(
         outputMapDirectory,
         addACSYearsToFilename("Region-6-Tract_Percent-No-Car.pdf", acsYear),
+        sep = "/"
+      )
+    )
+)
+# percent commute other than drive alone by tract
+suppressWarnings(
+  Region6TractPercentAlternativeCommuteMap <- getHSTPMap(
+    sf = region6TractLayer,
+    variable = "per_alttrn",
+    title = PercentAlternativeCommuteMapTitle,
+    vals = "percent",
+    palette = PercentAlternativeCommutePalette
+  ) %T>%
+    tmap::tmap_save(
+      filename = paste(
+        outputMapDirectory,
+        addACSYearsToFilename("Region-6-Tract_Percent-Alt-Commute.pdf", acsYear),
         sep = "/"
       )
     )
@@ -651,6 +670,15 @@ Region6BlockGroupVeteranDotDensityMap <- tmap::tm_shape(
     bg.color = "white",
     bg.alpha = .5
   )
+
+tmap::tmap_save(
+  Region6BlockGroupVeteranDotDensityMap,
+  filename = paste(
+    outputMapDirectory,
+    addACSYearsToFilename("Region-6-Block-Group_Estimated-Veteran_dot-density.png", acsYear),
+    sep = "/"
+  )
+)
 
 # population density of block groups
 suppressWarnings(
