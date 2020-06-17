@@ -78,12 +78,12 @@ illinoisCountyPreviousYearDataFileName <- addACSYearsToFilename(
 )
 
 previousYearVariableList <- unlist(
-  acsVariableTibble$acs_variables_2017
+  acsVariableTibble$acs_variables_2018
 ) %>%
-  stringr::str_trunc(10, side = "right", ellipsis = "") %>%
+  stringr::str_remove("E") %>%
   append(
     unlist(acsVariableTibble$denominator) %>%
-      stringr::str_trunc(10, side = "right", ellipsis = "")
+      stringr::str_remove("E")
   )
 
 

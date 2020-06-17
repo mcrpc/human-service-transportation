@@ -61,7 +61,7 @@ acsYear <- 2018                                              # !!CHANGE THIS WHE
 # create tibble to store relationship between desired variable's name,
 # its description, and the ACS variables from which it is derived
 acsVariableTibble <- tibble::tribble(
-  ~short_name, ~long_name, ~acs_variables_2017, ~denominator,
+  ~short_name, ~long_name, ~acs_variables_2018, ~denominator,
   "est_pop", "Population - Total Population", est_pop <- c("B01001_001E"), NULL,
   "est_blw18", "Population - Under 18", est_blw18 <- paste0("B01001_0", stringr::str_pad(c(3:6,27:30), 2, "left", pad = "0"), "E"), dnm_blw18 <- "B01001_001E",
   "est_18to65", "Population - Between 18 and 65", est_18to65 <- paste0("B01001_0", stringr::str_pad(c(7:9,10:19,31:43), 2, "left", pad = "0"), "E"), dnm_18to65 <- "B01001_001E",
