@@ -47,8 +47,8 @@ censusDataInventoryFile <- paste(
 )
 
 censusDataInventory <- readr::read_csv(censusDataInventoryFile)
-censusAPIKey <- "2f44a09c684e6b031d3e76f3655c169c167aeba8"
-Sys.setenv(CENSUS_KEY = censusAPIKey)
+censusAPIKey <- ""
+# Sys.setenv(CENSUS_KEY = censusAPIKey)
 acs2017VariableTable <- tidycensus::load_variables(2017, "acs5", cache = TRUE)
 acs2018VariableTable <- tidycensus::load_variables(2018, "acs5", cache = TRUE)
 region6CountyVector <- c(
